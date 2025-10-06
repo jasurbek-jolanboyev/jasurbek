@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jasurbek Jolanboyev — Portfolio</title>
+    <meta name="description" content="Jasurbek Jolanboyevning portfolio sahifasi. 2025-yilda kiberxavfsizlik, dasturiy injiniring va School 21 loyihalari.">
+    <meta name="keywords" content="Jasurbek Jolanboyev, kiberxavfsizlik, dasturiy injiniring, School 21, Tashkent Perfect University, O‘zbekiston dasturchi, 2025">
+    <meta name="author" content="Jasurbek Jolanboyev">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: #e0e0e0;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+        }
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        .hidden {
+            display: none;
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(10, 10, 35, 0.95);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+        }
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 0;
+        }
+        .logo {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #4facfe;
+        }
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 1rem;
+        }
+        .nav-links li a {
+            font-size: 0.9rem;
+            font-weight: 400;
+            transition: color 0.3s ease;
+        }
+        .nav-links li a:hover,
+        .nav-links li a.active {
+            color: #4facfe;
+        }
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: #e0e0e0;
+            font-size: 1.3rem;
+            cursor: pointer;
+        }
+        .language-switcher select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #4facfe;
+            color: #e0e0e0;
+            padding: 0.3rem;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        /* Hero Section */
+        #hero {
+            height: 70vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .hero-content h1 {
+            font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+            color: #4facfe;
+        }
+        .hero-content p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        .cta-btn {
+            display: inline-block;
+            padding: 0.6rem 1.2rem;
+            background: #4facfe;
+            color: #fff;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 0.8rem;
+            transition: transform 0.3s ease;
+        }
+        .cta-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Sections */
+        section {
+            padding: 2rem 0;
+        }
+        section h2 {
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #4facfe;
+        }
+        .reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* About */
+        #about .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 1.5rem;
+            align-items: center;
+        }
+        .about-img img {
+            width: 100%;
+            border-radius: 10px;
+            loading: lazy;
+        }
+        .about-text p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Skills */
+        #skills .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+        }
+        .skill-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid rgba(79, 172, 254, 0.2);
+        }
+        .skill-item i {
+            font-size: 1.8rem;
+            color: #4facfe;
+            margin-bottom: 0.5rem;
+        }
+        .skill-item h3 {
+            font-size: 1rem;
+        }
+        .skill-item p {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        /* Projects */
+        #projects .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+        .project-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .project-img img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            loading: lazy;
+        }
+        .project-content {
+            padding: 0.8rem;
+        }
+        .project-content h3 {
+            color: #4facfe;
+            font-size: 1rem;
+            margin-bottom: 0.4rem;
+        }
+        .project-content p {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        /* Education */
+        #education .timeline {
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #4facfe;
+            transform: translateX(-50%);
+        }
+        .timeline-item {
+            display: flex;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        .timeline-item:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+        .timeline-content {
+            width: 45%;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.8rem;
+            border-radius: 6px;
+            border: 1px solid rgba(79, 172, 254, 0.2);
+        }
+        .timeline-date {
+            position: absolute;
+            top: 0.4rem;
+            right: 50%;
+            transform: translateX(50%);
+            background: #4facfe;
+            color: #fff;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+        }
+        .timeline-item:nth-child(even) .timeline-date {
+            left: 50%;
+            right: auto;
+        }
+
+        /* Certificates */
+        #certificates .certificates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+        .certificate-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .certificate-img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            loading: lazy;
+        }
+        .certificate-content {
+            padding: 0.8rem;
+            text-align: center;
+        }
+        .certificate-content h3 {
+            color: #4facfe;
+            font-size: 1rem;
+        }
+        .certificate-content p {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        /* School 21 Referral */
+        #school21-referral .referral-content {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid rgba(79, 172, 254, 0.2);
+        }
+        .referral-content p {
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+        }
+        .referral-content a {
+            color: #4facfe;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+        .referral-content a:hover {
+            color: #00f2fe;
+        }
+        .referral-content img {
+            width: 150px;
+            height: 150px;
+            margin-top: 1rem;
+            border-radius: 8px;
+            loading: lazy;
+        }
+
+        /* Contact */
+        #contact .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 0.8rem;
+        }
+        .contact-item {
+            text-align: center;
+            padding: 0.8rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+        .contact-item a i {
+            font-size: 1.8rem;
+            color: #4facfe;
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+        .contact-item a i:hover {
+            transform: scale(1.2);
+            color: #00f2fe;
+        }
+        .contact-item h3 {
+            font-size: 0.9rem;
+            margin: 0.4rem 0;
+        }
+        .contact-item p {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        /* Modal for Zoom */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            max-width: 80%;
+            max-height: 80%;
+            transform: scale(1);
+            transition: transform 0.3s ease;
+        }
+        .modal-buttons {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+        }
+        .modal-buttons button {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1.3rem;
+            cursor: pointer;
+            margin-left: 0.8rem;
+        }
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 40px;
+            color: white;
+            font-size: 1.8rem;
+            cursor: pointer;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 0.8rem 0;
+            background: rgba(10, 10, 35, 0.8);
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background: rgba(10, 10, 35, 0.98);
+                flex-direction: column;
+                padding: 0.8rem;
+                gap: 0.8rem;
+            }
+            .nav-links.active {
+                display: flex;
+            }
+            .mobile-toggle {
+                display: block;
+            }
+            #about .about-grid {
+                grid-template-columns: 1fr;
+                gap: 0.8rem;
+            }
+            .timeline::before {
+                left: 10px;
+            }
+            .timeline-item,
+            .timeline-item:nth-child(even) {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .timeline-content {
+                width: 100%;
+                margin-left: 25px;
+            }
+            .timeline-date {
+                left: 0;
+                right: auto;
+                transform: none;
+                margin-bottom: 0.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="container">
+            <div class="logo">Jasurbek Jolanboyev</div>
+            <ul class="nav-links" id="nav-links">
+                <li><a href="#hero" class="active" data-key="home">Bosh sahifa</a></li>
+                <li><a href="#about" data-key="about">Men haqimda</a></li>
+                <li><a href="#education" data-key="education">Ta'lim</a></li>
+                <li><a href="#skills" data-key="skills">Ko'nikmalar</a></li>
+                <li><a href="#projects" data-key="projects">Loyihalar</a></li>
+                <li><a href="#certificates" data-key="certificates">Sertifikatlar</a></li>
+                <li><a href="#school21-referral" data-key="school21">School 21</a></li>
+                <li><a href="#contact" data-key="contact">Kontaktlar</a></li>
+            </ul>
+            <button class="mobile-toggle" id="mobile-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="language-switcher">
+                <select id="language-select">
+                    <option value="uz">O'zbek</option>
+                    <option value="ru">Русский</option>
+                    <option value="en">English</option>
+                </select>
+            </div>
+        </nav>
+    </header>
+
+    <section id="hero">
+        <div class="container">
+            <div class="hero-content reveal">
+                <h1>Jasurbek Jolanboyev</h1>
+                <p class="lang lang-uz">IT mutaxassisi | Dasturchi | Kiberxavfsizlik</p>
+                <p class="lang lang-ru hidden">IT-специалист | Программист | Кибербезопасность</p>
+                <p class="lang lang-en hidden">IT Specialist | Programmer | Cybersecurity</p>
+                <a href="#about" class="cta-btn lang lang-uz">Ko'proq bilib oling</a>
+                <a href="#about" class="cta-btn lang lang-ru hidden">Узнать больше</a>
+                <a href="#about" class="cta-btn lang lang-en hidden">Learn More</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="about">
+        <div class="container">
+            <h2 class="reveal lang lang-uz">Men haqimda</h2>
+            <h2 class="reveal lang lang-ru hidden">Обо мне</h2>
+            <h2 class="reveal lang lang-en hidden">About Me</h2>
+            <div class="about-grid reveal">
+                <div class="about-img">
+                    <img src="/home/serinaqu/Desktop/wenportfolio/assets/man.jpg" alt="Jasurbek Jolanboyev — O‘zbekiston kiberxavfsizlik mutaxassisi 2025" loading="lazy">
+                </div>
+                <div class="about-text">
+                    <p class="lang lang-uz">Men — Jasurbek Jolanboyev, 2025-yilda O‘zbekiston IT sohasida faol ishtirok etayotgan dasturchi va kiberxavfsizlik mutaxassisi. Maqsadim — xavfsiz va innovatsion raqamli yechimlar yaratish.</p>
+                    <p class="lang lang-ru hidden">Я — Jasurbek Jolanboyev, в 2025 году активно участвую в IT-сфере Узбекистана как программист и специалист по кибербезопасности. Моя цель — создавать безопасные и инновационные цифровые решения.</p>
+                    <p class="lang lang-en hidden">I am Jasurbek Jolanboyev, actively contributing to Uzbekistan's IT sector in 2025 as a programmer and cybersecurity specialist. My goal is to create secure and innovative digital solutions.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="education">
+        <div class="container">
+            <h2 class="reveal lang lang-uz">Ta'lim</h2>
+            <h2 class="reveal lang lang-ru hidden">Образование</h2>
+            <h2 class="reveal lang lang-en hidden">Education</h2>
+            <div class="timeline">
+                <div class="timeline-item reveal">
+                    <div class="timeline-date lang lang-uz">2025</div>
+                    <div class="timeline-date lang lang-ru hidden">2025</div>
+                    <div class="timeline-date lang lang-en hidden">2025</div>
+                    <div class="timeline-content">
+                        <h3 class="lang lang-uz">School 21 (Kiberxavfsizlik)</h3>
+                        <h3 class="lang lang-ru hidden">Школа 21 (Кибербезопасность)</h3>
+                        <h3 class="lang lang-en hidden">School 21 (Cybersecurity)</h3>
+                        <p class="lang lang-uz">Tarmoqlar (GNS3), OSI modeli, IP, ARP, OSPF, VLAN, DNS bo‘yicha loyihalar. Wireshark, Cisco IOS, Linux (Ubuntu, Kali) tajribasi.</p>
+                        <p class="lang lang-ru hidden">Проекты по сетям (GNS3), модели OSI, IP, ARP, OSPF, VLAN, DNS. Опыт с Wireshark, Cisco IOS, Linux (Ubuntu, Kali).</p>
+                        <p class="lang lang-en hidden">Projects on networks (GNS3), OSI model, IP, ARP, OSPF, VLAN, DNS. Experience with Wireshark, Cisco IOS, Linux (Ubuntu, Kali).</p>
+                    </div>
+                </div>
+                <div class="timeline-item reveal">
+                    <div class="timeline-date lang lang-uz">2025</div>
+                    <div class="timeline-date lang lang-ru hidden">2025</div>
+                    <div class="timeline-date lang lang-en hidden">2025</div>
+                    <div class="timeline-content">
+                        <h3 class="lang lang-uz">Tashkent Perfect University (Dasturiy Injiniring)</h3>
+                        <h3 class="lang lang-ru hidden">Ташкентский Perfect University (Программная Инженерия)</h3>
+                        <h3 class="lang lang-en hidden">Tashkent Perfect University (Software Engineering)</h3>
+                        <p class="lang lang-uz">Dasturiy injiniring bo‘yicha ta’lim.</p>
+                        <p class="lang lang-ru hidden">Обучение по программной инженерии.</p>
+                        <p class="lang lang-en hidden">Studying software engineering.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="skills">
+        <div class="container">
+            <h2 class="reveal lang lang-uz">Ko‘nikmalar</h2>
+            <h2 class="reveal lang lang-ru hidden">Навыки</h2>
+            <h2 class="reveal lang lang-en hidden">Skills</h2>
+            <div class="skills-grid">
+                <div class="skill-item reveal">
+                    <i class="fab fa-python"></i>
+                    <h3>Python</h3>
+                    <p class="lang lang-uz">Django, AI</p>
+                    <p class="lang lang-ru hidden">Django, AI</p>
+                    <p class="lang lang-en hidden">Django, AI</p>
+                </div>
+                <div class="skill-item reveal">
+                    <i class="fab fa-js"></i>
+                    <h3>JavaScript</h3>
+                    <p class="lang lang-uz">React</p>
+                    <p class="lang lang-ru hidden">React</p>
+                    <p class="lang lang-en hidden">React</p>
+                </div>
+                <div class="skill-item reveal">
+                    <i class="fab fa-html5"></i>
+                    <h3>HTML/CSS</h3>
+                    <p class="lang lang-uz">Veb dizayn</p>
+                    <p class="lang lang-ru hidden">Веб-дизайн</p>
+                    <p class="lang lang-en hidden">Web Design</p>
+                </div>
+                <div class="skill-item reveal">
+                    <i class="fab fa-flutter"></i>
+                    <h3>Flutter</h3>
+                    <p class="lang lang-uz">Mobil ilovalar</p>
+                    <p class="lang lang-ru hidden">Мобильные приложения</p>
+                    <p class="lang lang-en hidden">Mobile Apps</p>
+                </div>
+                <div class="skill-item reveal">
+                    <i class="fas fa-shield-alt"></i>
+                    <h3>Kiberxavfsizlik</h3>
+                    <p class="lang lang-uz">Tarmoq himoyasi</p>
+                    <p class="lang lang-ru hidden">Кибербезопасность</p>
+                    <p class="lang lang-en hidden">Cybersecurity</p>
+                </div>
+                <div class="skill-item reveal">
+                    <i class="fab fa-linux"></i>
+                    <h3>Linux</h3>
+                    <p class="lang lang-uz">Ubuntu, Kali</p>
+                    <p class="lang lang-ru hidden">Ubuntu, Kali</p>
+                    <p class="lang lang-en hidden">Ubuntu, Kali</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="projects">
+        <div class="container">
+            <h2 class="reveal lang lang-uz">Loyihalar</h2>
+            <h2 class="reveal lang lang-ru hidden">Проекты</h2>
+            <h2 class="reveal lang lang-en hidden">Projects</h2>
+            <div class="projects-grid">
+                <div class="project-card reveal">
+                    <div class="project-img">
+                        <img src="/home/serinaqu/Desktop/wenportfolio/assets/ehson.jpg" alt="E-Ehson — Telegram bot bilan xayriya platformasi 2025" loading="lazy">
+                    </div>
+                    <div class="project-content">
+                        <h3 class="lang lang-uz">E-Ehson</h3>
+                        <h3 class="lang lang-ru hidden">E-Ehson</h3>
+                        <h3 class="lang lang-en hidden">E-Ehson</h3>
+                        <p class="lang lang-uz">2025-yilda boshlangan Telegram bot bilan integratsiya qilingan xayriya tizimi.</p>
+                        <p class="lang lang-ru hidden">Система благотворительности с интеграцией Telegram-бота, начата в 2025 году.</p>
+                        <p class="lang lang-en hidden">Charity system with Telegram bot integration, started in 2025.</p>
+                    </div>
+                </div>
+                <div class="project-card reveal">
+                    <div class="project-img">
+                        <img src="/home/serinaqu/Desktop/wenportfolio/assets/aivoice.jpg" alt="AI Voice Assistant — Kiberxavfsizlik yordamchisi 2025" loading="lazy">
+                    </div>
+                    <div class="project-content">
+                        <h3 class="lang lang-uz">AI Voice Assistant</h3>
+                        <h3 class="lang lang-ru hidden">AI Voice Assistant</h3>
+                        <h3 class="lang lang-en hidden">AI Voice Assistant</h3>
+                        <p class="lang lang-uz">2025-yilda boshlangan kiberxavfsizlik uchun AI yordamchisi.</p>
+                        <p class="lang lang-ru hidden">AI-помощник для кибербезопасности, начат в 2025 году.</p>
+                        <p class="lang lang-en hidden">AI assistant for cybersecurity, started in 2025.</p>
+                    </div>
+                </div>
+                <div class="project-card reveal">
+                    <div class="project-img">
+                        <img src="/home/serinaqu/Desktop/wenportfolio/assets/ecotech.jpg" alt="GreenTech App — Ekologiya ilovasi 2025" loading="lazy">
+                    </div>
+                    <div class="project-content">
+                        <h3 class="lang lang-uz">GreenTech App</h3>
+                        <h3 class="lang lang-ru hidden">GreenTech App</h3>
+                        <h3 class="lang lang-en hidden">GreenTech App</h3>
+                        <p class="lang lang-uz">2025-yilda boshlangan ekologiyani qo‘llab-quvvatlash ilovasi.</p>
+                        <p class="lang lang-ru hidden">Приложение для поддержки экологии, начато в 2025 году.</p>
+                        <p class="lang lang-en hidden">Ecology support app, started in 2025.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="certificates">
+        <div class="container">
+            <h2 class="reveal lang lang-uz">Sertifikatlar</h2>
+            <h2 class="reveal lang lang-ru hidden">Сертификаты</h2>
+            <h2 class="reveal lang lang-en hidden">Certificates</h2>
+            <div class="certificates-grid">
+                <div class="certificate-card reveal" onclick="openModal('/home/serinaqu/Desktop/wenportfolio/assets/cybersertificate.jpg')">
+                    <img class="certificate-img" src="/home/serinaqu/Desktop/wenportfolio/assets/cybersertificate.jpg" alt="kiberxavfsizlik sertifikati 2025" loading="lazy">
+                    <div class="certificate-content">
+                        <h3 class="lang lang-uz">Sertifikat 1</h3>
+                        <h3 class="lang lang-ru hidden">Сертификат 1</h3>
+                        <h3 class="lang lang-en hidden">Certificate 1</h3>
+                        <p class="lang lang-uz">Sertificate 2024</p>
+                        <p class="lang lang-ru hidden">Sertificate 2024</p>
+                        <p class="lang lang-en hidden">Sertificate 2024</p>
+                    </div>
+                </div>
+                <div class="certificate-card reveal" onclick="openModal('/home/serinaqu/Desktop/wenportfolio/assets/ideaton.jpg')">
+                    <img class="certificate-img" src="/home/serinaqu/Desktop/wenportfolio/assets/ideaton.jpg" alt="ideaton sertifikati 2025" loading="lazy">
+                    <div class="certificate-content">
+                        <h3 class="lang lang-uz">Sertifikat 2</h3>
+                        <h3 class="lang lang-ru hidden">Сертификат 2</h3>
+                        <h3 class="lang lang-en hidden">Certificate 2</h3>
+                        <p class="lang lang-uz">ideaton, 2025</p>
+                        <p class="lang lang-ru hidden">ideaton, 2025</p>
+                        <p class="lang lang-en hidden">ideaton, 2025</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="school21-referral">
+        <div class="container">
+            <h2 class="reveal lang lang-uz">School 21 bilan birga o'qing</h2>
+            <h2 class="reveal lang lang-ru hidden">Учитесь вместе с School 21</h2>
+            <h2 class="reveal lang lang-en hidden">Study with School 21</h2>
+            <div class="referral-content reveal">
+                <p class="lang lang-uz">School 21 da bepul IT ta'limi oling! link orqali ro‘yxatdan o‘ting va kiberxavfsizlik, dasturlash va boshqa sohalarda karyera boshlang.</p>
+                <p class="lang lang-ru hidden">Получите бесплатное IT-образование в School 21! Зарегистрируйтесь по моей реферальной ссылке и начните карьеру в кибербезопасности, программировании и других областях.</p>
+                <p class="lang lang-en hidden">Get free IT education at School 21! Register using my referral link and start a career in cybersecurity, programming, and other fields.</p>
+                <p><a href="https://21-school.uz/?utm_source=school21&utm_medium=student_tas&utm_campaign=serinaqu" target="_blank">RO'YHATDAN O'TISH UCHUN BOSING</a></p>
+                <img src="/home/serinaqu/Desktop/wenportfolio/assets/qrcode.jpeg" alt="School 21 QR kodi 2025" loading="lazy">
+            </div>
+        </div>
+    </section>
+
+    <section id="contact">
+        <div class="container">
+            <h2 class="reveal lang lang-uz">Kontaktlar</h2>
+            <h2 class="reveal lang lang-ru hidden">Контакты</h2>
+            <h2 class="reveal lang lang-en hidden">Contacts</h2>
+            <div class="contact-grid">
+                <div class="contact-item reveal">
+                    <a href="tel:+998958883851" target="_blank"><i class="fas fa-phone"></i></a>
+                    <h3 class="lang lang-uz">Telefon</h3>
+                    <h3 class="lang lang-ru hidden">Телефон</h3>
+                    <h3 class="lang lang-en hidden">Phone</h3>
+                    <p>+998-95-888-38-51</p>
+                </div>
+                <div class="contact-item reveal">
+                    <a href="https://t.me/vscoderr" target="_blank"><i class="fab fa-telegram"></i></a>
+                    <h3 class="lang lang-uz">Telegram</h3>
+                    <h3 class="lang lang-ru hidden">Telegram</h3>
+                    <h3 class="lang lang-en hidden">Telegram</h3>
+                    <p>@vscoderr</p>
+                </div>
+                <div class="contact-item reveal">
+                    <a href="https://www.linkedin.com/in/jasurbek-jo-lanboyev-74b758351" target="_blank"><i class="fab fa-linkedin"></i></a>
+                    <h3 class="lang lang-uz">LinkedIn</h3>
+                    <h3 class="lang lang-ru hidden">LinkedIn</h3>
+                    <h3 class="lang lang-en hidden">LinkedIn</h3>
+                    <p class="lang lang-uz">Profilim</p>
+                    <p class="lang lang-ru hidden">Мой профиль</p>
+                    <p class="lang lang-en hidden">My Profile</p>
+                </div>
+                <div class="contact-item reveal">
+                    <a href="https://www.youtube.com/@Jasurbek_Jolanboyev" target="_blank"><i class="fab fa-youtube"></i></a>
+                    <h3 class="lang lang-uz">YouTube</h3>
+                    <h3 class="lang lang-ru hidden">YouTube</h3>
+                    <h3 class="lang lang-en hidden">YouTube</h3>
+                    <p class="lang lang-uz">Videolar</p>
+                    <p class="lang lang-ru hidden">Видео</p>
+                    <p class="lang lang-en hidden">Videos</p>
+                </div>
+                <div class="contact-item reveal">
+                    <a href="https://www.instagram.com/jasurbek.official.uz" target="_blank"><i class="fab fa-instagram"></i></a>
+                    <h3 class="lang lang-uz">Instagram</h3>
+                    <h3 class="lang lang-ru hidden">Instagram</h3>
+                    <h3 class="lang lang-en hidden">Instagram</h3>
+                    <p class="lang lang-uz">Postlar</p>
+                    <p class="lang lang-ru hidden">Посты</p>
+                    <p class="lang lang-en hidden">Posts</p>
+                </div>
+                <div class="contact-item reveal">
+                    <a href="https://www.tiktok.com/@jasurbek_jolanboyev" target="_blank"><i class="fab fa-tiktok"></i></a>
+                    <h3 class="lang lang-uz">TikTok</h3>
+                    <h3 class="lang lang-ru hidden">TikTok</h3>
+                    <h3 class="lang lang-en hidden">TikTok</h3>
+                    <p class="lang lang-uz">Qisqa videolar</p>
+                    <p class="lang lang-ru hidden">Короткие видео</p>
+                    <p class="lang lang-en hidden">Short Videos</p>
+                </div>
+                <div class="contact-item reveal">
+                    <a href="https://x.com/Jolanboyev" target="_blank"><i class="fab fa-x-twitter"></i></a>
+                    <h3 class="lang lang-uz">X (Twitter)</h3>
+                    <h3 class="lang lang-ru hidden">X (Twitter)</h3>
+                    <h3 class="lang lang-en hidden">X (Twitter)</h3>
+                    <p class="lang lang-uz">Yangiliklar</p>
+                    <p class="lang lang-ru hidden">Новости</p>
+                    <p class="lang lang-en hidden">News</p>
+                </div>
+                <div class="contact-item reveal">
+                    <a href="https://www.facebook.com/jasurbek.jolanboyev.7" target="_blank"><i class="fab fa-facebook"></i></a>
+                    <h3 class="lang lang-uz">Facebook</h3>
+                    <h3 class="lang lang-ru hidden">Facebook</h3>
+                    <h3 class="lang lang-en hidden">Facebook</h3>
+                    <p class="lang lang-uz">Profilim</p>
+                    <p class="lang lang-ru hidden">Мой профиль</p>
+                    <p class="lang lang-en hidden">My Profile</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal for Image Zoom -->
+    <div id="imageModal" class="modal" onclick="closeModal()">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <div class="modal-buttons">
+            <button onclick="zoomIn()" class="zoom-in">+</button>
+            <button onclick="zoomOut()" class="zoom-out">-</button>
+        </div>
+        <img class="modal-content" id="modalImage" src="" alt="Sertifikat tasviri 2025">
+    </div>
+
+    <footer>
+        <div class="container">
+            <p class="lang lang-uz">&copy; 2025 Jasurbek Jolanboyev.</p>
+            <p class="lang lang-ru hidden">&copy; 2025 Jasurbek Jolanboyev.</p>
+            <p class="lang lang-en hidden">&copy; 2025 Jasurbek Jolanboyev.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Language Translations
+        const translations = {
+            uz: {
+                home: 'Bosh sahifa',
+                about: 'Men haqimda',
+                education: 'Ta\'lim',
+                skills: 'Ko\'nikmalar',
+                projects: 'Loyihalar',
+                certificates: 'Sertifikatlar',
+                school21: 'School 21',
+                contact: 'Kontaktlar'
+            },
+            ru: {
+                home: 'Главная',
+                about: 'Обо мне',
+                education: 'Образование',
+                skills: 'Навыки',
+                projects: 'Проекты',
+                certificates: 'Сертификаты',
+                school21: 'Школа 21',
+                contact: 'Контакты'
+            },
+            en: {
+                home: 'Home',
+                about: 'About Me',
+                education: 'Education',
+                skills: 'Skills',
+                projects: 'Projects',
+                certificates: 'Certificates',
+                school21: 'School 21',
+                contact: 'Contacts'
+            }
+        };
+
+        // Language Switcher
+        const languageSelect = document.getElementById('language-select');
+        languageSelect.addEventListener('change', (e) => {
+            const lang = e.target.value;
+            document.querySelectorAll('.lang').forEach(el => {
+                el.classList.add('hidden');
+            });
+            document.querySelectorAll(`.lang-${lang}`).forEach(el => {
+                el.classList.remove('hidden');
+            });
+            document.querySelectorAll('.nav-links a').forEach(link => {
+                const key = link.dataset.key;
+                link.textContent = translations[lang][key];
+            });
+        });
+
+        // Set default language
+        languageSelect.value = 'uz';
+        languageSelect.dispatchEvent(new Event('change'));
+
+        // Mobile Navigation
+        const mobileToggle = document.getElementById('mobile-toggle');
+        const navLinks = document.getElementById('nav-links');
+        mobileToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            const icon = mobileToggle.querySelector('i');
+            icon.classList.toggle('fa-bars');
+            icon.classList.toggle('fa-times');
+        });
+
+        // Smooth Scroll & Active Nav
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+                navLinks.classList.remove('active');
+                mobileToggle.querySelector('i').classList.add('fa-bars');
+                mobileToggle.querySelector('i').classList.remove('fa-times');
+            });
+        });
+
+        // Scroll Animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, observerOptions);
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+        // Modal Functions
+        let zoomLevel = 1;
+        function openModal(src) {
+            document.getElementById('imageModal').style.display = 'flex';
+            document.getElementById('modalImage').src = src;
+            zoomLevel = 1;
+            document.getElementById('modalImage').style.transform = `scale(${zoomLevel})`;
+        }
+        function closeModal() {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+        function zoomIn() {
+            zoomLevel += 0.1;
+            document.getElementById('modalImage').style.transform = `scale(${zoomLevel})`;
+        }
+        function zoomOut() {
+            zoomLevel = Math.max(0.1, zoomLevel - 0.1);
+            document.getElementById('modalImage').style.transform = `scale(${zoomLevel})`;
+        }
+    </script>
+</body>
+</html>
