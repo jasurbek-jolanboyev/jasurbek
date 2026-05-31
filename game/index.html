@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Jasurbek // HackOS Terminal</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&family=SF+Pro+Display:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d1117;--dock:#1a1f2e;--panel:#131920;--win:#161d27;
+  --bar:#1e2535;--border:#2a3a4a;--border2:#1e2d3d;
+  --g:#7ee787;--g2:#3fb950;--g3:#56d364;
+  --c:#58a6ff;--c2:#79c0ff;--pur:#bc8cff;
+  --r:#ff7b72;--y:#e3b341;--pk:#f778ba;
+  --muted:#484f58;--muted2:#6e7681;--text:#c9d1d9;--text2:#8b949e;
+  --font:'JetBrains Mono',monospace;
+  --radius:10px;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{font-family:var(--font);color:var(--text);display:flex;flex-direction:column;user-select:none;}
+
+/* ══ DESKTOP WALLPAPER ══ */
+#wallpaper{
+  position:fixed;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(188,140,255,.08) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(88,166,255,.07) 0%, transparent 55%),
+    radial-gradient(ellipse at 60% 80%, rgba(126,231,135,.05) 0%, transparent 50%),
+    linear-gradient(135deg,#0d1117 0%,#0a0f1a 50%,#070d14 100%);
+}
+#wallpaper canvas{position:absolute;inset:0;opacity:.12}
+
+/* ══ MENU BAR (macOS style) ══ */
+#menubar{
+  position:relative;z-index:100;
+  height:28px;
+  background:rgba(22,29,39,.92);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(255,255,255,.06);
+  display:flex;align-items:center;padding:0 1rem;gap:1.5rem;
+  flex-shrink:0;
+}
+.mb-apple{font-size:.9rem;color:var(--text2)}
+.mb-item{font-size:.68rem;color:var(--text2);cursor:pointer;padding:.2rem .4rem;border-radius:4px;white-space:nowrap}
+.mb-item:hover{background:rgba(255,255,255,.08);color:var(--text)}
+.mb-right{margin-left:auto;display:flex;gap:.8rem;align-items:center}
+.mb-status{font-size:.6rem;color:var(--muted2);display:flex;align-items:center;gap:.3rem}
+.mb-status .dot-pulse{width:6px;height:6px;border-radius:50%;background:var(--g2);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(63,185,80,.4)}50%{opacity:.7;box-shadow:0 0 0 4px rgba(63,185,80,0)}}
+#mb-clock{font-size:.62rem;color:var(--text2)}
+
+/* ══ DESKTOP AREA ══ */
+#desktop{
+  position:relative;z-index:10;flex:1;overflow:hidden;
+  display:flex;flex-direction:column;
+}
+
+/* ══ WINDOW CHROME ══ */
+#terminal-window{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:min(960px,96vw);
+  height:min(640px,calc(100vh - 80px));
+  background:rgba(13,17,23,.95);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  box-shadow:0 32px 80px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.04);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  transition:all .3s ease;
+}
+#terminal-window.maximized{
+  top:0;left:0;transform:none;
+  width:100%;height:100%;
+  border-radius:0;
+}
+
+/* ── Title Bar ── */
+#titlebar{
+  height:38px;flex-shrink:0;
+  background:rgba(22,29,39,.98);
+  border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;
+  padding:0 1rem;gap:.8rem;
+  position:relative;
+}
+.tb-dots{display:flex;gap:.45rem}
+.tb-dot{
+  width:12px;height:12px;border-radius:50%;cursor:pointer;
+  transition:filter .15s;border:none;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.4rem;color:transparent;
+}
+.tb-dot:hover{filter:brightness(1.2);color:rgba(0,0,0,.6)}
+.tb-dot.close{background:#ff5f57}
+.tb-dot.min{background:#febc2e}
+.tb-dot.max{background:#28c840}
+.tb-title{
+  position:absolute;left:50%;transform:translateX(-50%);
+  font-size:.68rem;color:var(--muted2);letter-spacing:.05em;
+  white-space:nowrap;
+}
+.tb-right-btns{margin-left:auto;display:flex;gap:.5rem}
+.tb-icon-btn{background:none;border:1px solid var(--border);border-radius:4px;padding:.15rem .5rem;color:var(--muted2);font-size:.6rem;cursor:pointer;transition:all .15s}
+.tb-icon-btn:hover{border-color:var(--g2);color:var(--g)}
+
+/* ── Main Layout ── */
+#main-layout{flex:1;display:flex;overflow:hidden}
+
+/* ── Sidebar ── */
+#sidebar{
+  width:200px;flex-shrink:0;
+  background:rgba(10,14,20,.9);
+  border-right:1px solid var(--border2);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  transition:all .3s;
+}
+#sidebar.hidden{width:0;overflow:hidden}
+.sb-section{padding:.7rem .8rem;border-bottom:1px solid var(--border2)}
+.sb-head{
+  font-size:.55rem;letter-spacing:.18em;color:var(--muted);
+  text-transform:uppercase;margin-bottom:.5rem;
+  display:flex;align-items:center;gap:.4rem;
+}
+.sb-head::before{content:'';flex:1;height:1px;background:var(--border2)}
+
+/* Mission list */
+.mis-item{
+  display:flex;align-items:center;gap:.5rem;
+  padding:.4rem .5rem;border-radius:5px;cursor:pointer;
+  margin-bottom:.2rem;transition:background .15s;
+}
+.mis-item:hover,.mis-item.active{background:rgba(88,166,255,.08)}
+.mis-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.mis-dot.locked{background:var(--muted)}
+.mis-dot.active{background:var(--y);animation:pulse 2s infinite}
+.mis-dot.done{background:var(--g2)}
+.mis-info{min-width:0}
+.mis-name{font-size:.62rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mis-ip{font-size:.55rem;color:var(--muted2)}
+
+/* Tool buttons */
+.tool-grid{display:flex;flex-wrap:wrap;gap:.3rem;padding:.6rem .8rem}
+.tool-btn{
+  font-size:.57rem;padding:.25rem .5rem;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border2);
+  border-radius:4px;color:var(--muted2);cursor:pointer;
+  transition:all .15s;white-space:nowrap;
+}
+.tool-btn:hover{background:rgba(126,231,135,.08);border-color:var(--g2);color:var(--g)}
+.tool-btn.cat-recon{border-color:rgba(88,166,255,.3);color:var(--c)}
+.tool-btn.cat-recon:hover{background:rgba(88,166,255,.1);border-color:var(--c)}
+.tool-btn.cat-access{border-color:rgba(188,140,255,.3);color:var(--pur)}
+.tool-btn.cat-access:hover{background:rgba(188,140,255,.1);border-color:var(--pur)}
+.tool-btn.cat-shell{border-color:rgba(126,231,135,.3);color:var(--g)}
+.tool-btn.cat-shell:hover{background:rgba(126,231,135,.1)}
+.tool-btn.cat-game{border-color:rgba(227,179,65,.3);color:var(--y)}
+.tool-btn.cat-game:hover{background:rgba(227,179,65,.1)}
+
+/* Stats */
+.stat-row{display:flex;justify-content:space-between;align-items:center;padding:.25rem .8rem}
+.stat-label{font-size:.58rem;color:var(--muted2)}
+.stat-val{font-size:.62rem;font-weight:700;color:var(--g)}
+
+/* ── Terminal Area ── */
+#term-area{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+
+/* Tab bar */
+#tabbar{
+  height:32px;flex-shrink:0;
+  background:rgba(16,22,30,.98);
+  border-bottom:1px solid var(--border2);
+  display:flex;align-items:flex-end;padding:0 .8rem;gap:.3rem;
+  overflow-x:auto;overflow-y:hidden;
+}
+#tabbar::-webkit-scrollbar{height:0}
+.tab{
+  height:26px;padding:0 .8rem;
+  display:flex;align-items:center;gap:.4rem;
+  border:1px solid transparent;border-bottom:none;
+  border-radius:6px 6px 0 0;
+  font-size:.62rem;color:var(--muted2);cursor:pointer;
+  white-space:nowrap;transition:all .15s;flex-shrink:0;
+}
+.tab.active{background:rgba(13,17,23,.95);border-color:var(--border2);color:var(--text)}
+.tab .tab-dot{width:6px;height:6px;border-radius:50%;background:var(--muted)}
+.tab.active .tab-dot{background:var(--g2);animation:pulse 2s infinite}
+.tab-close{font-size:.55rem;opacity:0;transition:opacity .15s;margin-left:.2rem}
+.tab:hover .tab-close{opacity:.6}
+
+/* Output */
+#output{
+  flex:1;overflow-y:auto;overflow-x:hidden;
+  padding:1rem 1.2rem .5rem;
+  font-size:.72rem;line-height:1.8;
+}
+#output::-webkit-scrollbar{width:5px}
+#output::-webkit-scrollbar-track{background:transparent}
+#output::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* Input row */
+#input-row{
+  display:flex;align-items:center;gap:.5rem;
+  padding:.5rem 1.2rem;
+  background:rgba(16,22,30,.98);
+  border-top:1px solid var(--border2);
+  flex-shrink:0;
+}
+#prompt{color:var(--g);font-size:.72rem;font-weight:700;white-space:nowrap;flex-shrink:0}
+#cmd{
+  flex:1;background:transparent;border:none;outline:none;
+  color:var(--text);font-family:var(--font);font-size:.72rem;
+  caret-color:var(--g);min-width:0;
+}
+
+/* Mobile keyboard helper */
+#mobile-keys{
+  display:none;
+  flex-wrap:wrap;gap:.3rem;padding:.5rem .8rem;
+  background:rgba(10,14,20,.95);border-top:1px solid var(--border2);
+  overflow-x:auto;flex-shrink:0;
+}
+.mk-btn{
+  font-family:var(--font);font-size:.6rem;padding:.3rem .65rem;
+  background:rgba(255,255,255,.05);border:1px solid var(--border);
+  border-radius:4px;color:var(--text2);cursor:pointer;white-space:nowrap;
+  transition:all .15s;flex-shrink:0;
+}
+.mk-btn:active,.mk-btn:hover{background:rgba(126,231,135,.1);border-color:var(--g2);color:var(--g)}
+
+/* ══ DOCK (macOS) ══ */
+#dock{
+  position:relative;z-index:100;
+  display:flex;align-items:center;justify-content:center;
+  padding:.4rem .8rem;flex-shrink:0;
+  gap:.5rem;
+  background:rgba(22,29,39,.6);
+  backdrop-filter:blur(20px);
+  border-top:1px solid rgba(255,255,255,.06);
+}
+.dock-item{
+  display:flex;flex-direction:column;align-items:center;gap:.2rem;
+  cursor:pointer;padding:.3rem .5rem;border-radius:8px;
+  transition:all .2s;
+}
+.dock-item:hover{background:rgba(255,255,255,.06);transform:translateY(-3px)}
+.dock-icon{
+  width:32px;height:32px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1rem;
+}
+.dock-label{font-size:.45rem;color:var(--muted2);letter-spacing:.04em}
+.dock-sep{width:1px;height:30px;background:var(--border);margin:0 .2rem}
+
+/* ══ OUTPUT COLORS ══ */
+.g{color:var(--g)}.g2{color:var(--g2)}.g3{color:var(--g3)}
+.c{color:var(--c)}.c2{color:var(--c2)}.pur{color:var(--pur)}
+.r{color:var(--r)}.y{color:var(--y)}.pk{color:var(--pk)}
+.m{color:var(--muted2)}.w{color:var(--text)}.b{font-weight:700}
+.sep-line{color:var(--border);display:block;overflow:hidden;white-space:nowrap}
+.out-line{display:block;word-break:break-word}
+.art{color:var(--g);line-height:1.25;font-size:.6rem}
+.flag-box{
+  display:inline-block;padding:.4rem 1rem;margin:.3rem 0;
+  border:1px solid var(--g2);border-radius:5px;
+  background:rgba(63,185,80,.08);color:var(--g);font-weight:700;
+  letter-spacing:.04em;
+}
+.pbar-wrap{display:flex;align-items:center;gap:.8rem;margin:.15rem 0}
+.pbar-label{font-size:.62rem;color:var(--muted2);width:200px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pbar{height:3px;background:var(--border);border-radius:2px;flex:1;min-width:60px;overflow:hidden}
+.pbar-fill{height:100%;background:linear-gradient(90deg,var(--g2),var(--g));transition:width .04s linear;border-radius:2px}
+.win-badge{
+  display:inline-block;font-size:.58rem;padding:.1rem .5rem;
+  border-radius:3px;font-weight:700;letter-spacing:.05em;
+}
+.win-badge.high{background:rgba(255,123,114,.15);color:var(--r);border:1px solid rgba(255,123,114,.3)}
+.win-badge.med{background:rgba(227,179,65,.15);color:var(--y);border:1px solid rgba(227,179,65,.3)}
+.win-badge.crit{background:rgba(247,120,186,.15);color:var(--pk);border:1px solid rgba(247,120,186,.3)}
+
+/* ══ RESPONSIVE ══ */
+@media(max-width:700px){
+  #menubar .mb-item:not(.mb-brand){display:none}
+  #terminal-window{
+    width:100%;height:calc(100vh - 90px);
+    top:0;left:0;transform:none;border-radius:0;
+    position:relative;
+  }
+  #sidebar{display:none}
+  #tabbar .tab:not(.active){display:none}
+  #mobile-keys{display:flex}
+  #dock .dock-label{display:none}
+  .dock-icon{width:28px;height:28px;font-size:.85rem}
+  #dock{padding:.3rem .5rem;gap:.3rem}
+  #output{font-size:.68rem;padding:.7rem .8rem .4rem}
+  .tb-title{font-size:.58rem}
+  #titlebar{padding:0 .7rem}
+  #input-row{padding:.4rem .8rem}
+  #cmd{font-size:.68rem}
+  #prompt{font-size:.68rem}
+  .art{font-size:.42rem}
+}
+@media(max-width:400px){
+  .art{font-size:.35rem}
+  #output{font-size:.62rem}
+}
+</style>
+</head>
+<body>
+
+<!-- WALLPAPER -->
+<div id="wallpaper"><canvas id="bg-canvas"></canvas></div>
+
+<!-- MENU BAR -->
+<div id="menubar">
+  <span style="font-size:.9rem;color:#c9d1d9" class="mb-brand">&#63743;</span>
+  <span class="mb-item" style="font-weight:700;color:var(--text)">HackOS</span>
+  <span class="mb-item">File</span>
+  <span class="mb-item">Tools</span>
+  <span class="mb-item">View</span>
+  <span class="mb-item">Mission</span>
+  <div class="mb-right">
+    <div class="mb-status"><span class="dot-pulse"></span><span id="mb-mis">CTF-BOX-01</span></div>
+    <div class="mb-status">&#9679; <span id="mb-score">0 pts</span></div>
+    <div id="mb-clock">--:--</div>
+  </div>
+</div>
+
+<!-- DESKTOP -->
+<div id="desktop">
+<div id="terminal-window">
+
+  <!-- TITLEBAR -->
+  <div id="titlebar">
+    <div class="tb-dots">
+      <button class="tb-dot close" onclick="document.getElementById('terminal-window').style.opacity='0.3'" title="Close">✕</button>
+      <button class="tb-dot min" onclick="" title="Minimize">−</button>
+      <button class="tb-dot max" onclick="toggleMax()" title="Maximize">+</button>
+    </div>
+    <div class="tb-title" id="tb-title">root@hackerbox — CTF Terminal 3.0</div>
+    <div class="tb-right-btns">
+      <button class="tb-icon-btn" onclick="toggleSidebar()">&#9776;</button>
+      <button class="tb-icon-btn" onclick="document.getElementById('terminal-window').style.opacity='1'">&#9635;</button>
+    </div>
+  </div>
+
+  <!-- MAIN LAYOUT -->
+  <div id="main-layout">
+
+    <!-- SIDEBAR -->
+    <div id="sidebar">
+      <!-- Stats -->
+      <div class="sb-section" style="padding:.6rem .8rem">
+        <div class="sb-head">stats</div>
+        <div class="stat-row"><span class="stat-label">Score</span><span class="stat-val" id="sb-score">0</span></div>
+        <div class="stat-row"><span class="stat-label">Flags</span><span class="stat-val" id="sb-flags">0/3</span></div>
+        <div class="stat-row"><span class="stat-label">Lives</span><span id="sb-lives" class="stat-val">♥♥♥</span></div>
+      </div>
+      <!-- Missions -->
+      <div class="sb-section">
+        <div class="sb-head">targets</div>
+        <div id="mis-list"></div>
+      </div>
+      <!-- Tools -->
+      <div style="flex:1;overflow-y:auto;padding-bottom:.5rem">
+        <div class="sb-head" style="padding:.5rem .8rem 0">recon</div>
+        <div class="tool-grid" id="tg-recon"></div>
+        <div class="sb-head" style="padding:.5rem .8rem 0">access</div>
+        <div class="tool-grid" id="tg-access"></div>
+        <div class="sb-head" style="padding:.5rem .8rem 0">shell</div>
+        <div class="tool-grid" id="tg-shell"></div>
+        <div class="sb-head" style="padding:.5rem .8rem 0">game</div>
+        <div class="tool-grid" id="tg-game"></div>
+      </div>
+    </div>
+
+    <!-- TERMINAL -->
+    <div id="term-area">
+      <!-- Tabs -->
+      <div id="tabbar">
+        <div class="tab active"><span class="tab-dot"></span>bash — root<span class="tab-close">✕</span></div>
+        <div class="tab" onclick="this.classList.add('active')"><span class="tab-dot" style="background:var(--c)"></span>nmap<span class="tab-close">✕</span></div>
+        <div class="tab" onclick="this.classList.add('active')"><span class="tab-dot" style="background:var(--pur)"></span>hydra<span class="tab-close">✕</span></div>
+        <div class="tab" style="cursor:pointer;color:var(--g2)" onclick=""><span style="font-size:.7rem">+</span></div>
+      </div>
+
+      <!-- Output -->
+      <div id="output"></div>
+
+      <!-- Input -->
+      <div id="input-row">
+        <span id="prompt">root@kali:~#</span>
+        <input id="cmd" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder=" ">
+      </div>
+
+      <!-- Mobile keys -->
+      <div id="mobile-keys" id="mkeys"></div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- DOCK -->
+<div id="dock">
+  <div class="dock-item" onclick="appendCmd('help')">
+    <div class="dock-icon" style="background:linear-gradient(135deg,#1a2a1a,#2a4a2a)">📖</div>
+    <div class="dock-label">Help</div>
+  </div>
+  <div class="dock-item" onclick="appendCmd('mission')">
+    <div class="dock-icon" style="background:linear-gradient(135deg,#1a1a2a,#2a2a4a)">🎯</div>
+    <div class="dock-label">Mission</div>
+  </div>
+  <div class="dock-item" onclick="appendCmd('nmap ' + getMission().ip)">
+    <div class="dock-icon" style="background:linear-gradient(135deg,#1a2a2a,#0d3a3a)">🔍</div>
+    <div class="dock-label">Nmap</div>
+  </div>
+  <div class="dock-item" onclick="appendCmd('hint')">
+    <div class="dock-icon" style="background:linear-gradient(135deg,#2a2a1a,#3a3a0a)">💡</div>
+    <div class="dock-label">Hint</div>
+  </div>
+  <div class="dock-sep"></div>
+  <div class="dock-item" onclick="appendCmd('ls')">
+    <div class="dock-icon" style="background:linear-gradient(135deg,#1a2a1a,#2a3a2a)">📂</div>
+    <div class="dock-label">Files</div>
+  </div>
+  <div class="dock-item" onclick="appendCmd('score')">
+    <div class="dock-icon" style="background:linear-gradient(135deg,#2a1a2a,#3a1a3a)">📊</div>
+    <div class="dock-label">Score</div>
+  </div>
+  <div class="dock-sep"></div>
+  <div class="dock-item" onclick="resetGame()">
+    <div class="dock-icon" style="background:linear-gradient(135deg,#2a1a1a,#4a1a1a)">🔄</div>
+    <div class="dock-label">Reset</div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// BG PARTICLES
+// ═══════════════════════════════════════════════════
+(function(){
+  const c=document.getElementById('bg-canvas');
+  const x=c.getContext('2d');
+  function resize(){c.width=window.innerWidth;c.height=window.innerHeight}
+  resize();window.addEventListener('resize',resize);
+  const pts=Array.from({length:60},()=>({
+    x:Math.random()*c.width,y:Math.random()*c.height,
+    vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,
+    r:Math.random()*1.5+.5,
+  }));
+  function draw(){
+    x.clearRect(0,0,c.width,c.height);
+    pts.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0)p.x=c.width;if(p.x>c.width)p.x=0;
+      if(p.y<0)p.y=c.height;if(p.y>c.height)p.y=0;
+      x.beginPath();x.arc(p.x,p.y,p.r,0,Math.PI*2);
+      x.fillStyle='rgba(126,231,135,0.4)';x.fill();
+    });
+    // lines
+    for(let i=0;i<pts.length;i++){
+      for(let j=i+1;j<pts.length;j++){
+        const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y;
+        const d=Math.sqrt(dx*dx+dy*dy);
+        if(d<120){
+          x.beginPath();x.moveTo(pts[i].x,pts[i].y);x.lineTo(pts[j].x,pts[j].y);
+          x.strokeStyle=`rgba(88,166,255,${.15*(1-d/120)})`;x.lineWidth=.5;x.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ═══════════════════════════════════════════════════
+// CLOCK
+// ═══════════════════════════════════════════════════
+function updateClock(){
+  const n=new Date();
+  document.getElementById('mb-clock').textContent=
+    n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0');
+}
+updateClock();setInterval(updateClock,10000);
+
+// ═══════════════════════════════════════════════════
+// MISSIONS
+// ═══════════════════════════════════════════════════
+const MISSIONS=[
+  {
+    id:1,name:'CTF-BOX-01',ip:'192.168.56.101',os:'Parrot OS 5.3',hostname:'parrot-ctf',
+    ports:[
+      {p:22,s:'open',svc:'ssh',ver:'OpenSSH 9.2p1'},
+      {p:80,s:'open',svc:'http',ver:'nginx 1.24.0'},
+      {p:443,s:'open',svc:'https',ver:'nginx 1.24.0'},
+      {p:3306,s:'filtered',svc:'mysql',ver:''},
+    ],
+    vuln:'Directory Traversal + Credential Exposure',severity:'HIGH',cvss:'7.5',
+    users:['root','parrot','webapp','ftpuser'],
+    fs:{
+      '/':['etc','home','var','tmp','root','usr','opt'],
+      '/etc':['passwd','shadow','hosts','hostname','crontab','nginx'],
+      '/etc/passwd':'root:x:0:0:root:/root:/bin/bash\nparrot:x:1000:1000:Parrot User:/home/parrot:/bin/bash\nwebapp:x:1001:1001::/home/webapp:/bin/sh',
+      '/etc/hosts':'127.0.0.1 localhost\n192.168.56.101 parrot-ctf\n10.10.10.1 gateway',
+      '/etc/hostname':'parrot-ctf',
+      '/etc/crontab':'*/5 * * * * root /opt/backup.sh\n0 2 * * * root /opt/cleanup.sh',
+      '/etc/nginx':['nginx.conf','sites-enabled'],
+      '/etc/nginx/nginx.conf':'server {\n  listen 80;\n  root /var/www/html;\n  autoindex on;\n  location /secret { auth_basic off; }\n}',
+      '/home':['parrot','webapp'],
+      '/home/parrot':['Desktop','Documents','.bash_history','.ssh'],
+      '/home/parrot/Desktop':['notes.txt','todo.txt'],
+      '/home/parrot/Documents':['passwords.kdbx','projects'],
+      '/home/parrot/.bash_history':'sudo su\ncd /var/www/html\ncat config.php\nmysql -u webapp -pS3cr3tDB!\nls /root',
+      '/home/parrot/.ssh':['id_rsa','id_rsa.pub','authorized_keys'],
+      '/home/parrot/.ssh/id_rsa':'-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXkt... [encrypted]\n-----END OPENSSH PRIVATE KEY-----',
+      '/home/parrot/Desktop/notes.txt':'- Webapp password changed to: W3bApp_2024!\n- MySQL root pass: S3cr3tDB!\n- TODO: remove /var/www/html/secret before going live!!',
+      '/home/parrot/Desktop/todo.txt':'[x] Setup nginx\n[ ] Remove default creds\n[ ] Patch CVE-2023-xxxx\n[ ] Change ALL passwords',
+      '/var':['www','log','tmp'],
+      '/var/www':['html'],
+      '/var/www/html':['index.html','config.php','secret','assets','api'],
+      '/var/www/html/config.php':'<?php\n// Database config\n$db_host = "localhost";\n$db_user = "webapp";\n$db_pass = "S3cr3tDB!";\n$db_name = "production";\n$admin_key = "4dm1n_k3y_2024";\n?>',
+      '/var/www/html/secret':['admin_backup.sql','flag.txt','users.csv'],
+      '/var/www/html/secret/flag.txt':'🚩 FLAG{P4RR0T_D1R_TRAV_0WNED}',
+      '/var/www/html/secret/users.csv':'username,password,role\nadmin,Admin@2024,superadmin\nuser1,pass123,user\nwebapp,W3bApp_2024!,webapp',
+      '/var/www/html/secret/admin_backup.sql':'-- MySQL dump\nINSERT INTO users VALUES ("admin","$2y$10$hashedpass","superadmin");',
+      '/var/log':['auth.log','nginx','syslog'],
+      '/var/log/auth.log':'May 31 14:22:01 parrot sshd[1234]: Accepted password for parrot from 10.10.10.5\nMay 31 14:25:11 parrot sudo: parrot : TTY=pts/0 ; COMMAND=/bin/bash',
+      '/opt':['backup.sh','cleanup.sh'],
+      '/opt/backup.sh':'#!/bin/bash\ntar -czf /tmp/backup_$(date +%Y%m%d).tar.gz /var/www/html',
+      '/root':['flag.txt','.ssh','scripts'],
+      '/root/flag.txt':'🚩 FLAG{R00T_PRIV3SC_P4RR0T_GG}',
+      '/tmp':['backup_20240531.tar.gz','sess_x7k2m'],
+    },
+    hint:"Port 80 ochiq, nginx autoindex yoqilgan. '/var/www/html/secret' papkasini tekshiring.",
+    flag:'FLAG{P4RR0T_D1R_TRAV_0WNED}',
+    story:"Parrot OS web server — ishlab chiquvchi test muhitini ochiq qoldirgan...",
+  },
+  {
+    id:2,name:'CTF-BOX-02',ip:'10.10.10.55',os:'Kali Linux 2024.1',hostname:'kali-target',
+    ports:[
+      {p:21,s:'open',svc:'ftp',ver:'vsftpd 3.0.5'},
+      {p:22,s:'open',svc:'ssh',ver:'OpenSSH 8.9p1'},
+      {p:1337,s:'open',svc:'http',ver:'Python/3.11 werkzeug'},
+      {p:9200,s:'open',svc:'elasticsearch',ver:'8.8.0'},
+    ],
+    vuln:'FTP Anonymous + Elasticsearch Unauth Access',severity:'HIGH',cvss:'8.1',
+    users:['root','kali','elastic','analyst'],
+    fs:{
+      '/':['etc','home','ftp','var','root','data'],
+      '/etc':['passwd','hosts','vsftpd.conf'],
+      '/etc/passwd':'root:x:0:0:root:/root:/bin/bash\nkali:x:1000:1000:Kali:/home/kali:/bin/zsh\nelastic:x:1001:1001::/home/elastic:/bin/bash\nanalyst:x:1002:1002::/home/analyst:/bin/bash',
+      '/etc/vsftpd.conf':'anonymous_enable=YES\nlocal_enable=YES\nwrite_enable=NO\nanon_root=/ftp\npasv_enable=YES',
+      '/ftp':['pub','incoming'],
+      '/ftp/pub':['README.txt','tools','loot'],
+      '/ftp/pub/README.txt':'CTF Box 02 — FTP Public Share\nFiles here are for authorized users only.\nAdmin note: do NOT upload sensitive files here!',
+      '/ftp/pub/tools':['nmap_output.txt','recon_notes.txt'],
+      '/ftp/pub/tools/nmap_output.txt':'Nmap scan of internal network:\n10.10.10.1   - Gateway (router)\n10.10.10.55  - This machine\n10.10.10.100 - Database server\n10.10.10.200 - Windows DC',
+      '/ftp/pub/tools/recon_notes.txt':'Credentials found:\nelastic:Elastic@2024\nanalyst:An4lyst_p4ss!\nkali:kali (default, change ASAP)',
+      '/ftp/pub/loot':['flag.txt','ssh_key.txt'],
+      '/ftp/pub/loot/flag.txt':'🚩 FLAG{FTP_AN0N_L00T_F0UND}',
+      '/ftp/pub/loot/ssh_key.txt':'SSH key for analyst@10.10.10.55:\nssh-rsa AAAAB3NzaC1yc2E... analyst@kali-target',
+      '/home':['kali','elastic','analyst'],
+      '/home/kali':['Desktop','tools','.zsh_history'],
+      '/home/kali/Desktop':['flag2.txt','wordlists'],
+      '/home/kali/Desktop/flag2.txt':'🚩 FLAG{K4L1_H0M3_D1R_4CC3SS}',
+      '/home/kali/.zsh_history':'nmap -sV 10.10.10.0/24\nelasticsearch-tool --host localhost:9200\ncurl http://localhost:9200/_cat/indices\ncurl http://localhost:9200/passwords/_search',
+      '/home/analyst':['reports','flag.txt'],
+      '/home/analyst/flag.txt':'🚩 FLAG{4N4LYST_SSH_P1V0T}',
+      '/root':['flag.txt','root_notes.txt'],
+      '/root/flag.txt':'🚩 FLAG{K4L1_R00T_FULL_PWN}',
+      '/root/root_notes.txt':'All flags planted. Test environment.\nRemember: change passwords before production!',
+      '/data':['elasticsearch'],
+      '/data/elasticsearch':['passwords_index.json'],
+      '/data/elasticsearch/passwords_index.json':'{"hits":[{"_source":{"user":"admin","pass":"Admin_Kali_2024!"}},{"_source":{"user":"root","pass":"R00t_3last1c!"}}]}',
+    },
+    hint:"FTP anonymous login yoqilgan. '/ftp/pub/loot' papkasiga kirish mumkin. Elasticsearch 9200-portda ham ochiq.",
+    flag:'FLAG{FTP_AN0N_L00T_F0UND}',
+    story:"Kali Linux test serveri — recon notes va loot papkasi FTP orqali ochiq qoldirilgan...",
+  },
+  {
+    id:3,name:'CTF-BOX-03',ip:'172.16.0.200',os:'macOS Ventura 13.5',hostname:'macbook-target',
+    ports:[
+      {p:22,s:'open',svc:'ssh',ver:'OpenSSH 9.0 (protocol 2.0)'},
+      {p:445,s:'open',svc:'smb',ver:'Samba 4.17.5'},
+      {p:5900,s:'open',svc:'vnc',ver:'Apple Remote Desktop'},
+      {p:8080,s:'open',svc:'http',ver:'AirPlay/1.0'},
+    ],
+    vuln:'SMB Null Session + Weak VNC Password',severity:'CRITICAL',cvss:'9.0',
+    users:['root','admin','developer','guest'],
+    fs:{
+      '/':['Users','private','var','Applications','Library'],
+      '/Users':['admin','developer','guest','Shared'],
+      '/Users/admin':['Desktop','Documents','Downloads','.bash_profile'],
+      '/Users/admin/Desktop':['flag.txt','passwords.txt','secrets'],
+      '/Users/admin/Desktop/flag.txt':'🚩 FLAG{MAC0S_SM8_NULL_3XPLOIT}',
+      '/Users/admin/Desktop/passwords.txt':'System passwords (DO NOT SHARE!):\nadmin: MacAdmin@2024\ndeveloper: Dev_MacOS_9!\niCloud: iCloud_B4ckup!\nVPN: VPN_C0rp_2024',
+      '/Users/admin/Desktop/secrets':['api_keys.txt','certificates'],
+      '/Users/admin/Desktop/secrets/api_keys.txt':'AWS_ACCESS_KEY=AKIA...EXAMPLE\nAWS_SECRET=wJalrXUt...EXAMPLE\nGITHUB_TOKEN=ghp_...EXAMPLE\nSTRIPE_KEY=sk_live_...EXAMPLE',
+      '/Users/admin/Documents':['project_alpha','budget_2024.xlsx'],
+      '/Users/admin/.bash_profile':'export PATH=$PATH:/usr/local/bin\n# AWS creds\nexport AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE\nexport AWS_SECRET_ACCESS_KEY=wJalrXUt/K7MDENG/bPxRfiCYEXAMPLEKEY',
+      '/Users/developer':['Projects','flag.txt'],
+      '/Users/developer/flag.txt':'🚩 FLAG{D3V_SSH_K3Y_ST0LEN}',
+      '/Users/developer/Projects':['webapp','mobile_app'],
+      '/Users/Shared':['company_docs','public_files'],
+      '/Users/Shared/company_docs':['employees.csv','financial_report.pdf'],
+      '/Users/Shared/company_docs/employees.csv':'name,email,password\nJohn Admin,admin@corp.com,MacAdmin@2024\nJane Dev,dev@corp.com,Dev_MacOS_9!',
+      '/private':['etc','var'],
+      '/private/etc':['hosts','sudoers','ssh'],
+      '/private/etc/hosts':'127.0.0.1 localhost\n172.16.0.200 macbook-target\n172.16.0.1 corp-gateway',
+      '/private/etc/sudoers':'root ALL=(ALL) ALL\nadmin ALL=(ALL) NOPASSWD: ALL\ndeveloper ALL=(ALL:ALL) ALL',
+    },
+    hint:"SMB null session ishlaydi. 'smbclient -L 172.16.0.200' bilan share'larni ko'ring, keyin 'Users/admin/Desktop' papkasiga kiring.",
+    flag:'FLAG{MAC0S_SM8_NULL_3XPLOIT}',
+    story:"macOS developer laptop — SMB sharing yoqilgan, null session ruxsat berilgan...",
+  },
+];
+
+// ═══════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════
+const S={
+  score:0,flags:0,lives:3,missionIdx:0,
+  history:[],histIdx:-1,
+  cwd:'/',locked:false,
+  scanned:false,nmapped:false,exploited:false,gotFlag:false,
+};
+function getMission(){return MISSIONS[S.missionIdx]}
+
+// ═══════════════════════════════════════════════════
+// OUTPUT
+// ═══════════════════════════════════════════════════
+const out=document.getElementById('output');
+const cmdIn=document.getElementById('cmd');
+
+function line(html=''){
+  const d=document.createElement('div');
+  d.className='out-line';
+  d.innerHTML=html||'&nbsp;';
+  out.appendChild(d);
+  out.scrollTop=out.scrollHeight;
+}
+function blank(){line('')}
+function sep(n=50,ch='─'){line(`<span class="sep-line">${ch.repeat(n)}</span>`)}
+
+async function progress(label,ms=1200){
+  return new Promise(res=>{
+    const wrap=document.createElement('div');
+    wrap.className='pbar-wrap';
+    const lb=document.createElement('div');lb.className='pbar-label';lb.textContent=label;
+    const pb=document.createElement('div');pb.className='pbar';
+    const fill=document.createElement('div');fill.className='pbar-fill';fill.style.width='0%';
+    pb.appendChild(fill);wrap.appendChild(lb);wrap.appendChild(pb);
+    out.appendChild(wrap);out.scrollTop=out.scrollHeight;
+    let w=0;
+    const iv=setInterval(()=>{
+      w+=2;fill.style.width=w+'%';
+      out.scrollTop=out.scrollHeight;
+      if(w>=100){clearInterval(iv);res();}
+    },ms/50);
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// HUD
+// ═══════════════════════════════════════════════════
+function updateHUD(){
+  const m=getMission();
+  document.getElementById('sb-score').textContent=S.score;
+  document.getElementById('sb-flags').textContent=S.flags+'/'+MISSIONS.length;
+  document.getElementById('mb-score').textContent=S.score+' pts';
+  document.getElementById('mb-mis').textContent=m.name;
+  let lv='';
+  for(let i=0;i<3;i++) lv+=S.lives>i?'<span style="color:var(--r)">♥</span>':'<span style="color:var(--muted)">♡</span>';
+  document.getElementById('sb-lives').innerHTML=lv;
+  // mission list
+  const ml=document.getElementById('mis-list');
+  ml.innerHTML='';
+  MISSIONS.forEach((m2,i)=>{
+    const st=i<S.missionIdx?'done':i===S.missionIdx?'active':'locked';
+    const el=document.createElement('div');
+    el.className='mis-item'+(i===S.missionIdx?' active':'');
+    el.innerHTML=`<div class="mis-dot ${st}"></div><div class="mis-info"><div class="mis-name">${m2.name}</div><div class="mis-ip">${m2.ip}</div></div>`;
+    ml.appendChild(el);
+  });
+}
+function updatePrompt(){
+  const m=getMission();
+  const isWin=m.os.toLowerCase().includes('windows');
+  const isMac=m.os.toLowerCase().includes('macos');
+  const shell=isMac?'zsh':isWin?'PS':'bash';
+  const user=isMac?'admin':isWin?'Administrator':'root';
+  const host=m.hostname;
+  const cwd=S.cwd==='/'?'~':S.cwd.split('/').pop()||'/';
+  const sym=isWin?'>':'#';
+  const color=isMac?'#58a6ff':isWin?'#bc8cff':'#7ee787';
+  document.getElementById('prompt').style.color=color;
+  document.getElementById('prompt').textContent=`${user}@${host}:${cwd}${sym}`;
+  document.getElementById('tb-title').textContent=`${user}@${host} — ${m.os}`;
+}
+
+// ═══════════════════════════════════════════════════
+// FS HELPERS
+// ═══════════════════════════════════════════════════
+function normPath(p){
+  if(!p||p==='~') return '/home/'+(getMission().users[1]||'user');
+  if(p==='/') return '/';
+  if(p==='..'){
+    const parts=S.cwd.split('/').filter(Boolean);
+    parts.pop();
+    return '/'+parts.join('/');
+  }
+  if(p.startsWith('/')) return p;
+  return (S.cwd==='/'?'':S.cwd)+'/'+p;
+}
+function fsGet(p){return getMission().fs[p]}
+
+// ═══════════════════════════════════════════════════
+// TOOLS / CHIPS
+// ═══════════════════════════════════════════════════
+const TOOLS={
+  recon:['ping','nmap -sV','nmap -A -p-','gobuster','nikto','enum4linux','whois','dig'],
+  access:['ftp','ssh','smbclient -L','smbclient','hydra','curl','wget'],
+  shell:['ls','cat','cd','pwd','find','grep','id','whoami','uname -a','ps aux','netstat -tulnp','history','env','chmod','sudo'],
+  game:['mission','hint','submit','score','clear','help','reset'],
+};
+Object.entries(TOOLS).forEach(([cat,tools])=>{
+  const el=document.getElementById('tg-'+cat);
+  if(!el) return;
+  tools.forEach(t=>{
+    const b=document.createElement('span');
+    b.className='tool-btn cat-'+cat;
+    b.textContent=t;
+    b.onclick=()=>appendCmd(t);
+    el.appendChild(b);
+  });
+});
+
+// Mobile keys
+const MK=['Tab','↑','↓','Ctrl+C','ls','cat','cd ..','pwd','clear','nmap','ftp','ssh','hydra','submit','hint','help'];
+const mkeys=document.getElementById('mobile-keys');
+MK.forEach(k=>{
+  const b=document.createElement('button');
+  b.className='mk-btn';b.textContent=k;
+  b.onclick=()=>{
+    if(k==='Tab'){autocomplete();}
+    else if(k==='↑'){histNav(-1);}
+    else if(k==='↓'){histNav(1);}
+    else if(k==='Ctrl+C'){line(`<span class="r">^C</span>`);cmdIn.value='';}
+    else appendCmd(k);
+    cmdIn.focus();
+  };
+  mkeys.appendChild(b);
+});
+
+function appendCmd(txt){
+  cmdIn.value=txt+' ';
+  cmdIn.focus();
+}
+
+// ═══════════════════════════════════════════════════
+// COMMANDS
+// ═══════════════════════════════════════════════════
+const CMD={};
+
+CMD.help=async()=>{
+  blank();
+  line(`<span class="g b">┌─────────────────────────────────────────────────────┐</span>`);
+  line(`<span class="g b">│       HACKERBOX CTF TERMINAL — COMMAND REFERENCE    │</span>`);
+  line(`<span class="g b">└─────────────────────────────────────────────────────┘</span>`);
+  blank();
+  const sections=[
+    ['🔍 RECON',[
+      ['ping &lt;ip&gt;','Host online ekanligini ICMP bilan tekshir'],
+      ['nmap &lt;ip&gt;','Asosiy port scan'],
+      ['nmap -sV &lt;ip&gt;','Port + servis versiyalari'],
+      ['nmap -A -p- &lt;ip&gt;','Agressiv, barcha portlar'],
+      ['gobuster dir -u &lt;url&gt; -w common','Web directory brute-force'],
+      ['nikto -h &lt;ip&gt;','Web zaiflik skaneri'],
+      ['enum4linux &lt;ip&gt;','SMB/SAMBA enumeration'],
+      ['whois &lt;ip&gt;','WHOIS ma\'lumotlari'],
+      ['dig &lt;domain&gt;','DNS query'],
+    ]],
+    ['🔓 ACCESS',[
+      ['ftp &lt;ip&gt;','FTP ulanish (anonymous)'],
+      ['ssh user@&lt;ip&gt;','SSH ulanish'],
+      ['smbclient -L &lt;ip&gt;','SMB share\'larini ro\'yxatlash'],
+      ['smbclient \\\\&lt;ip&gt;\\&lt;share&gt;','SMB share\'ga kirish'],
+      ['hydra -l user -P list &lt;ip&gt; ftp','Parol brute-force'],
+      ['curl http://&lt;ip&gt;/&lt;path&gt;','HTTP so\'rov'],
+      ['wget http://&lt;ip&gt;/&lt;file&gt;','Fayl yuklab olish'],
+    ]],
+    ['💻 SHELL',[
+      ['ls [path]','Fayl ro\'yxati'],
+      ['cat &lt;file&gt;','Fayl mazmuni'],
+      ['cd &lt;dir&gt;','Papka o\'zgartirish'],
+      ['pwd','Joriy yo\'l'],
+      ['find &lt;dir&gt; -name "*.txt"','Fayl qidirish'],
+      ['grep &lt;pattern&gt; &lt;file&gt;','Matn qidirish'],
+      ['id / whoami','Foydalanuvchi info'],
+      ['uname -a','Tizim info'],
+      ['env','Muhit o\'zgaruvchilari'],
+      ['netstat -tulnp','Ochiq portlar'],
+      ['ps aux','Jarayonlar'],
+      ['history','Buyruqlar tarixi'],
+    ]],
+    ['🎮 GAME',[
+      ['mission','Joriy missiya tafsilotlari'],
+      ['hint','Maslahat (-50 ball)'],
+      ['submit FLAG{...}','Flag topshirish (+500 ball)'],
+      ['score','Ball va statistika'],
+      ['clear','Terminal tozalash'],
+      ['reset','O\'yinni qayta boshlash'],
+    ]],
+  ];
+  sections.forEach(([title,cmds])=>{
+    blank();
+    line(`<span class="y b">${title}</span>`);
+    cmds.forEach(([cmd,desc])=>{
+      line(`  <span class="c">${cmd.padEnd(38)}</span><span class="m">${desc}</span>`);
+    });
+  });
+  blank();
+  line(`<span class="m">Tab: to\'ldirish  |  ↑↓: tarix  |  Ctrl+C: bekor qilish</span>`);
+  blank();
+};
+
+CMD.clear=async()=>{out.innerHTML=''};
+
+CMD.whoami=async()=>line(`<span class="g">root</span>`);
+CMD.id=async()=>line(`<span class="g">uid=0(root) gid=0(root) groups=0(root),27(sudo)</span>`);
+CMD.hostname=async()=>line(`<span class="g">${getMission().hostname}</span>`);
+CMD.pwd=async()=>{line(`<span class="g">${S.cwd}</span>`);blank()};
+
+CMD['uname']=async(args)=>{
+  const m=getMission();
+  if(args.includes('-a'))
+    line(`<span class="g">${m.os} ${m.hostname} 6.1.0-kali5-amd64 #1 SMP PREEMPT_DYNAMIC x86_64 GNU/Linux</span>`);
+  else line(`<span class="g">Linux</span>`);
+};
+
+CMD.env=async()=>{
+  blank();
+  line(`<span class="m">SHELL</span>=<span class="g">/bin/bash</span>`);
+  line(`<span class="m">USER</span>=<span class="g">root</span>`);
+  line(`<span class="m">HOME</span>=<span class="g">/root</span>`);
+  line(`<span class="m">PATH</span>=<span class="g">/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin</span>`);
+  line(`<span class="m">TERM</span>=<span class="g">xterm-256color</span>`);
+  line(`<span class="m">LANG</span>=<span class="g">en_US.UTF-8</span>`);
+  blank();
+};
+
+CMD.ps=async()=>{
+  blank();
+  line(`<span class="m">USER         PID  %CPU %MEM  COMMAND</span>`);
+  line(`root           1   0.0  0.1  /sbin/init`);
+  line(`root         412   0.0  0.2  /usr/sbin/sshd`);
+  line(`www-data     841   0.2  1.2  nginx: worker`);
+  line(`root         912   0.0  0.1  /usr/sbin/cron`);
+  line(`root        1337   0.0  0.1  python3 app.py`);
+  blank();
+};
+
+CMD.netstat=async()=>{
+  const m=getMission();
+  blank();
+  line(`<span class="m">Proto  Local Address          State</span>`);
+  m.ports.filter(p=>p.s==='open').forEach(p=>{
+    line(`tcp    0.0.0.0:<span class="g">${String(p.p).padEnd(6)}</span>        <span class="g2">LISTEN</span>  <span class="m">(${p.svc})</span>`);
+  });
+  line(`tcp    127.0.0.1:5432        <span class="g2">LISTEN</span>  <span class="m">(postgresql)</span>`);
+  blank();
+};
+
+CMD.history=async()=>{
+  if(!S.history.length){line(`<span class="m">(tarix bo'sh)</span>`);return;}
+  S.history.forEach((h,i)=>line(`<span class="m">${String(i+1).padStart(4)}</span>  <span class="w">${h}</span>`));
+};
+
+CMD.ifconfig=async()=>{
+  const m=getMission();
+  blank();
+  line(`<span class="c b">eth0</span>: <span class="m">flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;</span>`);
+  line(`      inet <span class="g">${m.ip}</span>  netmask 255.255.255.0  broadcast ${m.ip.replace(/\.\d+$/,'.255')}`);
+  line(`      ether 08:00:27:${Math.floor(Math.random()*99).toString().padStart(2,'0')}:aa:ff`);
+  blank();
+  line(`<span class="c b">lo</span>: flags=73&lt;UP,LOOPBACK,RUNNING&gt;`);
+  line(`      inet <span class="g">127.0.0.1</span>  netmask 255.0.0.0`);
+  blank();
+};
+
+CMD.whois=async(args)=>{
+  const ip=args[0]||getMission().ip;
+  blank();
+  line(`<span class="m">% WHOIS query for ${ip}</span>`);
+  line(`inetnum:     ${ip.replace(/\.\d+$/,'.0/24')}`);
+  line(`netname:     CTF-TRAINING-NET`);
+  line(`descr:       Capture The Flag Training Environment`);
+  line(`country:     UZ`);
+  line(`org:         ORG-CTF-1`);
+  line(`admin-c:     JASURBEK-JOLANBOYEV`);
+  blank();
+};
+
+CMD.dig=async(args)=>{
+  const domain=args[0]||getMission().hostname;
+  blank();
+  line(`<span class="m">; &lt;&lt;&gt;&gt; DiG 9.18 &lt;&lt;&gt;&gt; ${domain}</span>`);
+  line(`<span class="m">;; ANSWER SECTION:</span>`);
+  line(`${domain}.    300  IN  A  <span class="g">${getMission().ip}</span>`);
+  blank();
+};
+
+// PING
+CMD.ping=async(args)=>{
+  const ip=args[0];
+  if(!ip){line(`<span class="r">Usage: ping &lt;ip&gt;</span>`);return;}
+  const m=getMission();
+  const alive=ip===m.ip;
+  blank();
+  line(`<span class="m">PING ${ip} (${ip}): 56 bytes of data</span>`);
+  await progress(`Sending ICMP echo to ${ip}...`,800);
+  if(alive){
+    for(let i=1;i<=4;i++)
+      line(`64 bytes from <span class="g">${ip}</span>: icmp_seq=${i} ttl=${64-Math.floor(Math.random()*3)} time=<span class="c">${(Math.random()*8+1).toFixed(2)} ms</span>`);
+    blank();
+    line(`<span class="g">--- ${ip} ping statistics ---</span>`);
+    line(`4 transmitted, 4 received, <span class="g2">0% packet loss</span>, time 3003ms`);
+    S.scanned=true;S.score+=10;
+    blank();
+    line(`<span class="g2">✓ Host UP — 'nmap -sV ${ip}' bilan portlarni skan qiling</span>`);
+  } else {
+    for(let i=1;i<=3;i++) line(`<span class="r">Request timeout for icmp_seq ${i}</span>`);
+    line(`<span class="r">--- ${ip}: Host unreachable ---</span>`);
+  }
+  blank();updateHUD();
+};
+
+// NMAP
+CMD.nmap=async(args)=>{
+  if(!args.length){line(`<span class="r">Usage: nmap [flags] &lt;ip&gt;</span>`);return;}
+  const ip=args[args.length-1];
+  const m=getMission();
+  if(ip!==m.ip){line(`<span class="r">Failed to resolve '${ip}'</span>`);return;}
+  const sV=args.includes('-sV')||args.includes('-A')||args.includes('-sC');
+  const agg=args.includes('-A');
+  const allPorts=args.includes('-p-');
+  blank();
+  line(`<span class="g b">Starting Nmap 7.94 ( https://nmap.org )</span>`);
+  line(`<span class="m">Scan report for ${m.hostname} (${m.ip})</span>`);
+  blank();
+  await progress(`Scanning ${allPorts?'65535':'1000'} ports on ${m.ip}`,allPorts?2500:1400);
+  blank();
+  line(`Host is up (<span class="g">0.00${Math.floor(Math.random()*9)}s</span> latency).`);
+  blank();
+  line(`<span class="m">PORT        STATE     SERVICE   ${sV?'VERSION':''}</span>`);
+  line(`<span class="sep-line">─────────────────────────────────────────────</span>`);
+  m.ports.forEach(p=>{
+    const col=p.s==='open'?'g':'m';
+    line(`<span class="${col}">${(p.p+'/tcp').padEnd(12)}${p.s.padEnd(10)}${p.svc.padEnd(14)}${sV?'<span class="c">'+p.ver+'</span>':''}</span>`);
+  });
+  if(agg){
+    blank();
+    line(`<span class="m">OS detection:</span> <span class="c">${m.os}</span>`);
+    line(`<span class="m">Aggressive scan done.</span>`);
+  }
+  blank();
+  line(`<span class="g">Nmap done: 1 IP (1 host up) in ${(Math.random()*3+1).toFixed(2)}s</span>`);
+  S.nmapped=true;S.score+=30;
+  blank();
+  line(`<span class="g2">💡 Ochiq portlarga qarab: ${m.ports.filter(p=>p.s==='open').map(p=>p.svc).join(', ')} tekshiring</span>`);
+  blank();updateHUD();
+};
+
+// GOBUSTER
+CMD.gobuster=async(args)=>{
+  const m=getMission();
+  if(!args.includes('dir')){line(`<span class="r">Usage: gobuster dir -u http://&lt;ip&gt; -w &lt;wordlist&gt;</span>`);return;}
+  const uIdx=args.indexOf('-u');
+  const url=uIdx>=0?args[uIdx+1]:`http://${m.ip}`;
+  blank();
+  line(`<span class="g b">Gobuster v3.6</span>`);
+  line(`<span class="m">URL: ${url}</span>`);
+  line(`<span class="m">Wordlist: /usr/share/wordlists/dirb/common.txt</span>`);
+  blank();
+  await progress('Brute forcing directories',2200);
+  blank();
+  line(`<span class="m">===============================================================</span>`);
+  const found=[
+    ['/index.html','200','(Status: 200) [Size: 1024]'],
+    ['/secret','200','(Status: 200) [Size: 4096] ← INTERESTING!'],
+    ['/config.php','200','(Status: 200) [Size: 312]'],
+    ['/assets','301','(Status: 301) [→ /assets/]'],
+    ['/api','200','(Status: 200) [Size: 892]'],
+    ['/.htaccess','403','(Status: 403) [Size: 162]'],
+  ];
+  found.forEach(([path,code,info])=>{
+    const col=code==='200'?'g':code==='301'?'c':'m';
+    line(`<span class="${col}">${path.padEnd(20)} ${info}</span>`);
+  });
+  blank();
+  line(`<span class="y">⚠ /secret papkasi ochiq — 'ls /var/www/html/secret' yoki curl bilan tekshiring!</span>`);
+  S.score+=25;blank();updateHUD();
+};
+
+// NIKTO
+CMD.nikto=async(args)=>{
+  if(!args.includes('-h')){line(`<span class="r">Usage: nikto -h &lt;ip&gt;</span>`);return;}
+  blank();
+  line(`<span class="g b">- Nikto v2.1.6 -</span>`);
+  line(`<span class="m">+ Target: ${getMission().ip}</span>`);
+  blank();
+  await progress('Scanning for vulnerabilities',2800);
+  blank();
+  const issues=[
+    ['r','OSVDB-3092','/secret/: Directory indexing enabled — sensitive files may be exposed'],
+    ['y','OSVDB-3268','/config.php: PHP config with possible credentials'],
+    ['r','OSVDB-12184','/admin/: Default admin directory found'],
+    ['y','INFO','Server: nginx — version exposed in headers'],
+    ['m','INFO','X-Frame-Options header missing'],
+    ['r','OSVDB-3233','Directory listing enabled on /var/www/html/secret'],
+  ];
+  issues.forEach(([col,id,msg])=>line(`<span class="${col}">+ ${id}: ${msg}</span>`));
+  blank();
+  line(`<span class="m">6 items reported. Scan complete.</span>`);
+  S.score+=20;blank();updateHUD();
+};
+
+// ENUM4LINUX
+CMD.enum4linux=async(args)=>{
+  const ip=args[0]||getMission().ip;
+  const m=getMission();
+  blank();
+  line(`<span class="g b">enum4linux v0.9.1</span>`);
+  line(`<span class="m">Target: ${ip}</span>`);
+  blank();
+  await progress('NetBIOS enumeration',700);
+  line(`<span class="c">Hostname: ${m.hostname}</span>`);
+  blank();
+  await progress('User enumeration',800);
+  line(`<span class="y">// USERS</span>`);
+  m.users.forEach(u=>line(`  index: 0x1 RID: 0x3e8 acb: 0x00000010 Account: <span class="g">${u}</span>  Desc: (null)`));
+  blank();
+  await progress('Share enumeration',600);
+  line(`<span class="y">// SHARES</span>`);
+  if(m.os.toLowerCase().includes('macos')||m.os.toLowerCase().includes('windows')){
+    line(`  <span class="g">ADMIN$</span>   Remote Admin`);
+    line(`  <span class="g">C$</span>       Default share`);
+    line(`  <span class="r">IPC$</span>     Null session accepted! ← VULN`);
+    line(`  <span class="g">Users</span>    User profiles`);
+    blank();
+    line(`<span class="r">⚠ Null session WORKS! 'smbclient -L ${ip}' bilan davom eting.</span>`);
+  } else {
+    line(`  <span class="m">No SMB shares on this host (Linux, no Samba)</span>`);
+  }
+  blank();
+  S.score+=25;updateHUD();
+};
+
+// FTP
+CMD.ftp=async(args)=>{
+  const ip=args[0];
+  const m=getMission();
+  if(!ip){line(`<span class="r">Usage: ftp &lt;ip&gt;</span>`);return;}
+  if(ip!==m.ip){line(`<span class="r">ftp: connect: Connection refused</span>`);return;}
+  if(!m.ports.find(p=>p.p===21&&p.s==='open')){line(`<span class="r">ftp: ${ip} port 21: Connection timed out</span>`);return;}
+  blank();
+  line(`<span class="m">Connected to ${ip}.</span>`);
+  line(`<span class="c">220 (vsFTPd 3.0.5)</span>`);
+  line(`<span class="y">Name: </span><span class="g">anonymous</span>`);
+  await progress('Authenticating',500);
+  line(`<span class="g">230 Login successful — anonymous access granted.</span>`);
+  blank();
+  const pub=fsGet('/ftp/pub');
+  if(pub){
+    line(`<span class="c">ftp&gt;</span> ls /ftp/pub`);
+    (Array.isArray(pub)?pub:[pub]).forEach(f=>line(`  <span class="g">${f}</span>`));
+    blank();
+    const loot=fsGet('/ftp/pub/loot');
+    if(loot){
+      line(`<span class="c">ftp&gt;</span> ls /ftp/pub/loot`);
+      (Array.isArray(loot)?loot:[]).forEach(f=>line(`  <span class="y">${f}</span>  ← interesting!`));
+      blank();
+      const recon=fsGet('/ftp/pub/tools/recon_notes.txt');
+      if(recon){
+        line(`<span class="c">ftp&gt;</span> get /ftp/pub/tools/recon_notes.txt`);
+        line(`<span class="g">226 Transfer complete.</span>`);
+        blank();
+        line(`<span class="y b">recon_notes.txt:</span>`);
+        recon.split('\n').forEach(l=>line(`  <span class="w">${l}</span>`));
+      }
+      blank();
+      line(`<span class="c">ftp&gt;</span> get /ftp/pub/loot/flag.txt`);
+      line(`<span class="g">226 Transfer complete.</span>`);
+      blank();
+      const flagVal=fsGet('/ftp/pub/loot/flag.txt');
+      line(`<span class="y b">flag.txt:</span>`);
+      line(`  <span class="flag-box">${flagVal}</span>`);
+      blank();
+      line(`<span class="g2">Flag topildi! 'submit ${String(flagVal).replace('🚩 ','')}' bilan topshiring.</span>`);
+    }
+  } else {
+    line(`<span class="c">ftp&gt;</span> ls`);
+    line(`  <span class="m">(empty or no access)</span>`);
+  }
+  S.exploited=true;S.score+=40;blank();updateHUD();
+};
+
+// SSH
+CMD.ssh=async(args)=>{
+  const target=args[0];
+  const m=getMission();
+  if(!target){line(`<span class="r">Usage: ssh user@ip [-i keyfile]</span>`);return;}
+  const [user,ip]=(target.includes('@')?target:'root@'+target).split('@');
+  if(ip!==m.ip){line(`<span class="r">ssh: connect to host ${ip}: Connection refused</span>`);return;}
+  if(!m.ports.find(p=>p.p===22&&p.s==='open')){line(`<span class="r">ssh: connect to host ${ip} port 22: Connection timed out</span>`);return;}
+  blank();
+  line(`<span class="m">The authenticity of host '${ip}' can't be established.</span>`);
+  line(`<span class="m">ED25519 key fingerprint is SHA256:${Math.random().toString(36).substr(2,40)}.</span>`);
+  line(`<span class="y">Are you sure you want to continue connecting? (yes/no): </span><span class="g">yes</span>`);
+  await progress('Authenticating',600);
+  if(m.users.includes(user)||user==='root'){
+    line(`<span class="g">Welcome to ${m.os}!</span>`);
+    line(`<span class="m">Last login: ${new Date().toDateString()} from 10.10.10.1</span>`);
+    blank();
+    S.cwd='/home/'+user==='root'?'/root':'/home/'+user;
+    S.exploited=true;S.score+=35;
+    updatePrompt();
+    line(`<span class="g2">✓ Shell as ${user}@${m.hostname} — 'ls' bilan boshlang</span>`);
+  } else {
+    line(`<span class="r">${user}@${ip}: Permission denied (publickey,password).</span>`);
+    S.lives=Math.max(0,S.lives-1);
+    if(!S.lives) setTimeout(()=>gameOver(),1000);
+  }
+  blank();updateHUD();
+};
+
+// SMBCLIENT
+CMD.smbclient=async(args)=>{
+  const m=getMission();
+  const listMode=args.includes('-L')||args.includes('-l');
+  const ip=listMode?(args[args.indexOf('-L')>=0?args.indexOf('-L')+1:args.indexOf('-l')+1]||args[0]):args[0];
+  if(!ip){line(`<span class="r">Usage: smbclient -L &lt;ip&gt;  or  smbclient \\\\ip\\share</span>`);return;}
+  const targetIp=ip.replace(/\\/g,'').split('/')[0]||ip;
+  if(targetIp!==m.ip){line(`<span class="r">Connection to ${targetIp} failed (NT_STATUS_HOST_UNREACHABLE)</span>`);return;}
+  if(!m.os.toLowerCase().includes('macos')&&!m.os.toLowerCase().includes('windows')){
+    line(`<span class="r">Connection to ${targetIp} failed (NT_STATUS_CONNECTION_REFUSED)</span>`);return;
+  }
+  blank();
+  if(listMode){
+    line(`<span class="m">Sharename     Type     Comment</span>`);
+    line(`<span class="sep-line">─────────────────────────────────</span>`);
+    line(`<span class="g">ADMIN$</span>        Disk     Remote Admin`);
+    line(`<span class="g">C$</span>            Disk     Default share`);
+    line(`<span class="r">IPC$</span>          IPC      Remote IPC <span class="y">← null session OK</span>`);
+    line(`<span class="g">Users</span>         Disk     User profiles`);
+    blank();
+    line(`<span class="g2">Null session works! 'smbclient \\\\${m.ip}\\Users' bilan kiring.</span>`);
+  } else {
+    line(`<span class="g">smb: \\&gt;</span> ls`);
+    const dir=fsGet('/Users');
+    if(Array.isArray(dir)) dir.forEach(f=>line(`  <span class="g">${f}</span>                  D`));
+    blank();
+    line(`<span class="g">smb: \\&gt;</span> cd admin`);
+    line(`<span class="g">smb: \\admin\\&gt;</span> ls`);
+    const adminDir=fsGet('/Users/admin');
+    if(Array.isArray(adminDir)) adminDir.forEach(f=>line(`  <span class="y">${f}</span>`));
+    blank();
+    line(`<span class="g">smb: \\admin\\&gt;</span> cd Desktop`);
+    line(`<span class="g">smb: \\admin\\Desktop\\&gt;</span> ls`);
+    const desk=fsGet('/Users/admin/Desktop');
+    if(Array.isArray(desk)) desk.forEach(f=>line(`  <span class="y">${f}</span>  ← `+(f.includes('flag')?'FLAG FILE!':'')));
+    blank();
+    line(`<span class="g">smb: \\admin\\Desktop\\&gt;</span> get flag.txt`);
+    const fl=fsGet('/Users/admin/Desktop/flag.txt');
+    line(`<span class="g">getting file \\admin\\Desktop\\flag.txt</span>`);
+    line(`<span class="flag-box">${fl}</span>`);
+    blank();
+    line(`<span class="g2">Flag topildi! 'submit ...' bilan topshiring.</span>`);
+    S.exploited=true;
+  }
+  S.score+=35;blank();updateHUD();
+};
+
+// HYDRA
+CMD.hydra=async(args)=>{
+  const m=getMission();
+  const lIdx=args.indexOf('-l');const PIdx=args.indexOf('-P');
+  const user=lIdx>=0&&args[lIdx+1]?args[lIdx+1]:'admin';
+  const ip=args.find(a=>a.match(/^\d+\.\d+/))||m.ip;
+  const svc=args[args.length-1]||'ssh';
+  if(ip!==m.ip){line(`<span class="r">Hydra: host ${ip} unreachable</span>`);return;}
+  blank();
+  line(`<span class="g b">Hydra v9.5 (c) 2023 by van Hauser/THC</span>`);
+  line(`<span class="m">[INFO] attacking ${svc}://${ip}/</span>`);
+  blank();
+  await progress(`Brute-forcing ${svc} @ ${ip}`,2200);
+  blank();
+  const found=user==='admin'||user==='kali'||user==='developer';
+  if(found){
+    const passes={'admin':'Admin_Kali_2024!','kali':'kali','developer':'Dev_MacOS_9!','elastic':'Elastic@2024'};
+    const pass=passes[user]||'P@ssw0rd_CTF';
+    line(`<span class="g b">[${svc}][${ip}] host: ${ip}   login: <span class="y">${user}</span>   password: <span class="pk">${pass}</span></span>`);
+    line(`<span class="g">1 valid password found</span>`);
+    S.score+=50;
+  } else {
+    line(`<span class="r">0 valid passwords found (try: admin, kali, developer)</span>`);
+  }
+  blank();updateHUD();
+};
+
+// CURL
+CMD.curl=async(args)=>{
+  const url=args.find(a=>a.startsWith('http'))||args[0];
+  if(!url){line(`<span class="r">Usage: curl &lt;url&gt;</span>`);return;}
+  const m=getMission();
+  blank();
+  if(url.includes(m.ip)||url.includes('localhost')){
+    const path=url.replace(/https?:\/\/[^/]+/,'');
+    const content=fsGet('/var/www/html'+path)||fsGet('/var/www/html/index.html')||'<html><body>200 OK</body></html>';
+    line(`<span class="m">* Connected to ${m.ip}</span>`);
+    line(`<span class="m">&lt; HTTP/1.1 200 OK</span>`);
+    blank();
+    if(typeof content==='string') content.split('\n').forEach(l=>line(l));
+    else if(Array.isArray(content)){
+      line(`<span class="y">Directory listing:</span>`);
+      content.forEach(f=>line(`  <span class="g">${f}</span>`));
+    }
+  } else {
+    line(`<span class="r">curl: (6) Could not resolve host: ${url}</span>`);
+  }
+  blank();
+};
+
+CMD.wget=async(args)=>{
+  const url=args[0];
+  if(!url){line(`<span class="r">Usage: wget &lt;url&gt;</span>`);return;}
+  blank();
+  line(`<span class="m">--${new Date().toISOString()}--  ${url}</span>`);
+  await progress('Downloading',600);
+  line(`<span class="g">200 OK — saved 'file.txt' [1024/1024]</span>`);
+  blank();
+};
+
+// LS
+CMD.ls=async(args)=>{
+  const path=args[0]?normPath(args[0]):S.cwd;
+  const val=fsGet(path);
+  if(val===undefined){line(`<span class="r">ls: cannot access '${path}': No such file or directory</span>`);return;}
+  blank();
+  if(Array.isArray(val)){
+    let row='';
+    val.forEach(f=>{
+      const child=fsGet(path+(path.endsWith('/')?'':'/') +f);
+      const isDir=Array.isArray(child);
+      const isSec=f.includes('flag')||f.includes('pass')||f.includes('secret')||f.includes('cred');
+      row+=isDir?`<span class="c b">${f}</span>  `:isSec?`<span class="y">${f}</span>  `:`<span class="g">${f}</span>  `;
+    });
+    line(row||`<span class="m">(empty)</span>`);
+  } else {
+    line(`<span class="g">${path.split('/').pop()}</span>`);
+  }
+  blank();
+};
+
+// CAT
+CMD.cat=async(args)=>{
+  if(!args[0]){line(`<span class="r">Usage: cat &lt;file&gt;</span>`);return;}
+  const path=normPath(args[0]);
+  const val=fsGet(path);
+  if(val===undefined){line(`<span class="r">cat: ${args[0]}: No such file or directory</span>`);return;}
+  if(Array.isArray(val)){line(`<span class="r">cat: ${args[0]}: Is a directory</span>`);return;}
+  blank();
+  String(val).split('\n').forEach(l=>{
+    if(l.includes('FLAG{'))
+      line(`<span class="flag-box">${l}</span>`);
+    else if(l.includes('password')||l.includes('pass')||l.includes('key')||l.includes('token'))
+      line(`<span class="y">${l}</span>`);
+    else
+      line(`<span class="w">${l||'&nbsp;'}</span>`);
+  });
+  blank();
+  if(String(val).includes('FLAG{')){
+    line(`<span class="g2">💡 Flag ko'rindi! 'submit FLAG{...}' buyrug'i bilan topshiring.</span>`);
+    blank();
+  }
+};
+
+// CD
+CMD.cd=async(args)=>{
+  const target=args[0]||'/home/'+(getMission().users[1]||'user');
+  const path=normPath(target);
+  const val=fsGet(path);
+  if(val===undefined){line(`<span class="r">bash: cd: ${target}: No such file or directory</span>`);return;}
+  if(!Array.isArray(val)){line(`<span class="r">bash: cd: ${target}: Not a directory</span>`);return;}
+  S.cwd=path;
+  updatePrompt();
+};
+
+// FIND
+CMD.find=async(args)=>{
+  const m=getMission();
+  const nameIdx=args.indexOf('-name');
+  const typeIdx=args.indexOf('-type');
+  const rawPat=nameIdx>=0?args[nameIdx+1]:'';
+  const pat=rawPat.replace(/["'*]/g,'').toLowerCase();
+  blank();
+  const results=[];
+  Object.keys(m.fs).forEach(k=>{
+    const v=m.fs[k];
+    if(typeof v==='string'){
+      const fname=k.split('/').pop().toLowerCase();
+      if(!pat||fname.includes(pat)||k.toLowerCase().includes(pat)) results.push(k);
+    }
+  });
+  results.slice(0,20).forEach(r=>{
+    const isSec=r.includes('flag')||r.includes('pass')||r.includes('secret');
+    line(`<span class="${isSec?'y':'g'}">${r}</span>`);
+  });
+  if(!results.length) line(`<span class="m">(natija topilmadi)</span>`);
+  blank();
+};
+
+// GREP
+CMD.grep=async(args)=>{
+  if(args.length<2){line(`<span class="r">Usage: grep &lt;pattern&gt; &lt;file&gt;</span>`);return;}
+  const pat=args[0].replace(/["']/g,'');
+  const filepath=normPath(args[1]);
+  const val=fsGet(filepath);
+  if(!val||Array.isArray(val)){line(`<span class="r">grep: ${args[1]}: No such file or directory</span>`);return;}
+  blank();
+  let found=false;
+  String(val).split('\n').forEach(l=>{
+    if(l.toLowerCase().includes(pat.toLowerCase())){
+      line(l.replace(new RegExp(pat,'gi'),m=>`<span class="y b">${m}</span>`));
+      found=true;
+    }
+  });
+  if(!found) line(`<span class="m">(pattern '${pat}' topilmadi)</span>`);
+  blank();
+};
+
+// SUDO
+CMD.sudo=async(args)=>{
+  if(!args.length){line(`<span class="r">usage: sudo command</span>`);return;}
+  line(`<span class="g">[sudo] password for root: </span>`);
+  await progress('Authenticating',300);
+  await CMD[args[0]]?.(args.slice(1))||line(`<span class="r">sudo: ${args[0]}: command not found</span>`);
+};
+
+CMD.chmod=async(args)=>{
+  if(args.length<2){line(`<span class="r">Usage: chmod &lt;permissions&gt; &lt;file&gt;</span>`);return;}
+  line(`<span class="g">chmod: permissions updated for ${args[args.length-1]}</span>`);blank();
+};
+
+// MISSION
+CMD.mission=async()=>{
+  const m=getMission();
+  blank();
+  const sevColor=m.severity==='CRITICAL'?'pk':m.severity==='HIGH'?'r':'y';
+  line(`<span class="g b">╔═══════════════════════════════════════════════════╗</span>`);
+  line(`<span class="g b">║  MISSION ${S.missionIdx+1}/${MISSIONS.length}: ${m.name.padEnd(36)} ║</span>`);
+  line(`<span class="g b">╚═══════════════════════════════════════════════════╝</span>`);
+  blank();
+  line(`  <span class="m">📋 Story    :</span> <span class="w">${m.story}</span>`);
+  line(`  <span class="m">🎯 Target   :</span> <span class="g">${m.ip}</span>`);
+  line(`  <span class="m">💻 OS       :</span> <span class="c">${m.os}</span>`);
+  line(`  <span class="m">🏠 Hostname :</span> <span class="c">${m.hostname}</span>`);
+  line(`  <span class="m">⚡ Vuln     :</span> <span class="r">${m.vuln}</span>`);
+  line(`  <span class="m">🔴 Severity :</span> <span class="${sevColor} b">${m.severity} (CVSS ${m.cvss})</span>`);
+  blank();
+  line(`  <span class="y b">OPEN PORTS:</span>`);
+  m.ports.filter(p=>p.s==='open').forEach(p=>{
+    line(`    <span class="g">${String(p.p+'/tcp').padEnd(10)}</span><span class="c">${p.svc.padEnd(16)}</span><span class="m">${p.ver}</span>`);
+  });
+  blank();
+  const steps=['1. ping &lt;ip&gt; — host tekshirish','2. nmap -sV &lt;ip&gt; — portlar skan','3. gobuster/nikto/enum4linux — enumeration','4. ftp/ssh/smbclient — kirish','5. ls/cat/find — fayllarni topish','6. submit FLAG{...} — flag topshirish'];
+  line(`  <span class="y b">🗺 CTF YO\'LI:</span>`);
+  steps.forEach(s=>line(`    <span class="w">${s}</span>`));
+  blank();
+};
+
+// HINT
+CMD.hint=async()=>{
+  if(S.score<50&&S.score>0){line(`<span class="r">Maslahat uchun kamida 50 ball kerak!</span>`);blank();return;}
+  S.score=Math.max(0,S.score-50);
+  blank();
+  line(`<span class="y b">╔═ 💡 MASLAHAT (-50 ball) ═════════════════════╗</span>`);
+  line(`<span class="y">  ${getMission().hint}</span>`);
+  line(`<span class="y b">╚══════════════════════════════════════════════╝</span>`);
+  blank();updateHUD();
+};
+
+// SUBMIT
+CMD.submit=async(args)=>{
+  const flag=(args[0]||'').replace(/['"]/g,'');
+  if(!flag||!flag.startsWith('FLAG{')){line(`<span class="r">Usage: submit FLAG{...}</span>`);blank();return;}
+  const m=getMission();
+  const correct=flag===m.flag;
+  blank();
+  if(correct){
+    S.flags++;S.score+=500;S.gotFlag=true;
+    line(`<span class="g b">╔══════════════════════════════════════════════════╗</span>`);
+    line(`<span class="g b">║  ██████╗  ██╗   ██╗ ███╗  ██╗             ██╗  ║</span>`);
+    line(`<span class="g b">║  ██╔══██╗ ██║   ██║ ████╗ ██║            ███║  ║</span>`);
+    line(`<span class="g b">║  ██████╔╝ ██║   ██║ ██╔██╗██║             ██║  ║</span>`);
+    line(`<span class="g b">║  ██╔══██╗ ██║   ██║ ██║╚████║             ██║  ║</span>`);
+    line(`<span class="g b">║  ██║  ██║ ╚██████╔╝ ██║ ╚███║             ██║  ║</span>`);
+    line(`<span class="g b">║  ╚═╝  ╚═╝  ╚═════╝  ╚═╝  ╚══╝             ╚═╝  ║</span>`);
+    line(`<span class="g b">╚══════════════════════════════════════════════════╝</span>`);
+    blank();
+    line(`<span class="flag-box">🚩 ${m.flag}</span>`);
+    blank();
+    line(`<span class="y b">+500 ball! Jami: ${S.score}</span>`);
+    document.getElementById('mis-list').children[S.missionIdx]?.querySelector('.mis-dot')?.setAttribute('class','mis-dot done');
+    if(S.missionIdx<MISSIONS.length-1){
+      setTimeout(async()=>{
+        blank();sep(50,'═');
+        line(`<span class="c b">▶ KEYINGI MISSIYA: ${MISSIONS[S.missionIdx+1].name}</span>`);
+        sep(50,'═');blank();
+        S.missionIdx++;S.scanned=false;S.nmapped=false;
+        S.exploited=false;S.gotFlag=false;S.cwd='/';
+        updatePrompt();updateHUD();
+        line(`<span class="c">${MISSIONS[S.missionIdx].story}</span>`);
+        line(`<span class="m">IP: </span><span class="g">${MISSIONS[S.missionIdx].ip}</span><span class="m">  |  'mission' yoki 'nmap ${MISSIONS[S.missionIdx].ip}'</span>`);
+        blank();
+      },1500);
+    } else {
+      blank();
+      line(`<span class="pk b">🏆 BARCHA MISSIYALAR TUGADI! FULL PWN!</span>`);
+      line(`<span class="g b">YAKUNIY BALL: ${S.score} | FLAGS: ${S.flags}/${MISSIONS.length}</span>`);
+      line(`<span class="c">Jasurbek Jolanboyev — CTF MASTER | t.me/serinaqu</span>`);
+    }
+  } else {
+    line(`<span class="r b">✗ NOTO'G'RI FLAG: ${flag}</span>`);
+    line(`<span class="m">Davom eting — flag /root/flag.txt yoki boshqa joyda</span>`);
+    S.lives=Math.max(0,S.lives-1);
+    if(!S.lives) setTimeout(()=>gameOver(),800);
+  }
+  blank();updateHUD();
+};
+
+// SCORE
+CMD.score=async()=>{
+  blank();
+  line(`<span class="y b">── STATISTIKA ──────────────────────────</span>`);
+  line(`  <span class="m">Ball     :</span> <span class="g b">${S.score}</span>`);
+  line(`  <span class="m">Flaglar  :</span> <span class="g">${S.flags} / ${MISSIONS.length}</span>`);
+  line(`  <span class="m">Hayotlar :</span> <span class="r">${S.lives} / 3</span>`);
+  line(`  <span class="m">Missiya  :</span> <span class="c">${S.missionIdx+1} / ${MISSIONS.length} — ${getMission().name}</span>`);
+  line(`  <span class="m">Hacker   :</span> <span class="g">Jasurbek Jolanboyev</span>`);
+  line(`<span class="y b">────────────────────────────────────────</span>`);
+  blank();
+};
+
+CMD.reset=async()=>{
+  blank();line(`<span class="y">Resetting game...</span>`);blank();
+  setTimeout(()=>resetGame(),800);
+};
+
+// ═══════════════════════════════════════════════════
+// DISPATCHER
+// ═══════════════════════════════════════════════════
+const ALL_CMDS=Object.keys(CMD);
+function autocomplete(){
+  const v=cmdIn.value.trim().split(' ');
+  const partial=v[v.length-1];
+  if(v.length===1){
+    const m=ALL_CMDS.filter(c=>c.startsWith(partial));
+    if(m.length===1){cmdIn.value=m[0]+' ';}
+    else if(m.length>1){blank();line(m.map(c=>`<span class="g">${c}</span>`).join('  '));blank();}
+  }
+}
+function histNav(dir){
+  if(!S.history.length) return;
+  S.histIdx=S.histIdx<0?S.history.length-1:Math.max(0,Math.min(S.history.length-1,S.histIdx+dir));
+  cmdIn.value=S.history[S.histIdx]||'';
+}
+async function dispatch(raw){
+  if(!raw.trim()) return;
+  const parts=raw.trim().split(/\s+/);
+  const cmd=parts[0].toLowerCase();
+  const args=parts.slice(1);
+  line(`<span class="g b">${document.getElementById('prompt').textContent}</span> <span class="w">${raw}</span>`);
+  S.history.push(raw);S.histIdx=-1;
+  const handler=CMD[cmd]||CMD[cmd.replace('-','')];
+  if(handler) await handler(args);
+  else{
+    line(`<span class="r">bash: ${cmd}: command not found</span>`);
+    const similar=ALL_CMDS.filter(c=>c.startsWith(cmd[0]));
+    if(similar.length) line(`<span class="m">O'xshash: ${similar.join(', ')}</span>`);
+    blank();
+  }
+}
+
+cmdIn.addEventListener('keydown',async e=>{
+  if(e.key==='Enter'){const v=cmdIn.value;cmdIn.value='';await dispatch(v);}
+  if(e.key==='ArrowUp'){e.preventDefault();histNav(-1);}
+  if(e.key==='ArrowDown'){e.preventDefault();histNav(1);}
+  if(e.key==='Tab'){e.preventDefault();autocomplete();}
+});
+document.addEventListener('click',()=>cmdIn.focus());
+
+// ═══════════════════════════════════════════════════
+// WINDOW CONTROLS
+// ═══════════════════════════════════════════════════
+function toggleMax(){
+  document.getElementById('terminal-window').classList.toggle('maximized');
+}
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('hidden');
+}
+
+// ═══════════════════════════════════════════════════
+// GAME OVER
+// ═══════════════════════════════════════════════════
+function gameOver(){
+  blank();
+  line(`<span class="r b">╔═══════════════════════════════╗</span>`);
+  line(`<span class="r b">║      GAME OVER — CAUGHT!      ║</span>`);
+  line(`<span class="r b">╚═══════════════════════════════╝</span>`);
+  blank();
+  line(`<span class="m">Barcha hayotlar sarflandi. 3 soniyadan so'ng qayta boshlanadi...</span>`);
+  setTimeout(()=>resetGame(),3000);
+}
+
+// ═══════════════════════════════════════════════════
+// RESET
+// ═══════════════════════════════════════════════════
+function resetGame(){
+  Object.assign(S,{score:0,flags:0,lives:3,missionIdx:0,history:[],histIdx:-1,cwd:'/',scanned:false,nmapped:false,exploited:false,gotFlag:false});
+  out.innerHTML='';
+  updateHUD();updatePrompt();
+  bootScreen();
+}
+
+// ═══════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════
+async function bootScreen(){
+  await new Promise(r=>setTimeout(r,100));
+  line(`<span class="art">
+ ██╗  ██╗ █████╗  ██████╗██╗  ██╗███████╗██████╗     ██████╗ ███████╗
+ ██║  ██║██╔══██╗██╔════╝██║ ██╔╝██╔════╝██╔══██╗   ██╔═══██╗██╔════╝
+ ███████║███████║██║     █████╔╝ █████╗  ██████╔╝   ██║   ██║███████╗
+ ██╔══██║██╔══██║██║     ██╔═██╗ ██╔══╝  ██╔══██╗   ██║   ██║╚════██║
+ ██║  ██║██║  ██║╚██████╗██║  ██╗███████╗██║  ██║   ╚██████╔╝███████║
+ ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝    ╚═════╝ ╚══════╝
+              CTF TRAINING TERMINAL v3.0 — by Jasurbek Jolanboyev</span>`);
+  blank();
+  sep();
+  await progress('Parrot OS + Kali Linux + macOS environment loading',700);
+  await progress('CTF sandbox initializing',500);
+  await progress('3 target machines deployed',400);
+  blank();
+  line(`<span class="g b">✓ HackOS Terminal ready — 3 CTF box, 3 flag</span>`);
+  blank();
+  sep(50,'═');
+  line(`<span class="y b">BIRINCHI MISSIYA: ${MISSIONS[0].name}</span>`);
+  line(`  <span class="c">${MISSIONS[0].story}</span>`);
+  line(`  <span class="m">OS: ${MISSIONS[0].os}  |  IP: </span><span class="g">${MISSIONS[0].ip}</span>`);
+  sep(50,'═');
+  blank();
+  line(`<span class="m">CTF yo\'li: </span><span class="g">ping</span><span class="m"> → </span><span class="g">nmap</span><span class="m"> → </span><span class="g">gobuster/ftp/ssh</span><span class="m"> → </span><span class="g">ls/cat</span><span class="m"> → </span><span class="g">submit FLAG{}</span>`);
+  line(`<span class="m">Tab: to\'ldirish | ↑↓: tarix | sidebar: tools | dock: tez kirish</span>`);
+  blank();
+  updateHUD();updatePrompt();
+}
+
+bootScreen();
+</script>
+</body>
+</html>
+
