@@ -300,8 +300,10 @@ footer{padding:2.5rem clamp(1.5rem,4vw,3rem);position:relative;z-index:10;
   background:rgba(255,255,255,.97);border:1px solid var(--line);border-radius:22px;
   padding:1.2rem;backdrop-filter:blur(20px);box-shadow:var(--shadow)}
 #mobile-menu.open{display:block}
-#mobile-menu a{display:block;font-family:var(--font-mono);font-size:.85rem;letter-spacing:.04em;
+#mobile-menu a{font-family:var(--font-mono);font-size:.85rem;letter-spacing:.04em;
   padding:.85rem .4rem;color:var(--soft);border-bottom:1px solid var(--line);font-weight:700}
+#mobile-menu a.uz,#mobile-menu a.ru,#mobile-menu a.en{display:none}
+#mobile-menu a.uz.show,#mobile-menu a.ru.show,#mobile-menu a.en.show{display:block}
 #mobile-menu a:last-of-type{border-bottom:none}
 #mobile-menu a:hover{color:var(--green-d)}
 #mobile-menu .lang-btns-mobile{display:flex;gap:.5rem;margin-top:1rem}
