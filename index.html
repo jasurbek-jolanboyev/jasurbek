@@ -224,7 +224,7 @@ h1.hero-title .line2{display:block;color:var(--soft);font-size:.36em;letter-spac
 .project-link:hover{border-color:var(--green-d)}
 
 /* ===== CERTIFICATES ===== */
-.certs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.8rem}
+.certs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.8rem}
 .cert-card{background:var(--card);border:1px solid var(--line);border-radius:22px;overflow:hidden;cursor:pointer;
   transition:all .3s;box-shadow:var(--shadow-sm)}
 .cert-card:hover{transform:translateY(-6px);box-shadow:var(--shadow);border-color:rgba(164,220,54,.5)}
@@ -433,9 +433,9 @@ footer{padding:2.5rem clamp(1.5rem,4vw,3rem);position:relative;z-index:10;
       </div>
       <div class="avatar-wrapper">
         <div class="scan-line"></div>
-        <img src="assets/man.jpg" alt="Jasurbek Jolanboyev">
+        <img src="assets/man.jpg" alt="">
         <div class="avatar-frame"></div>
-        <div class="avatar-tag">// JASURBEK.JOLANBOYEV</div>
+        <!-- <div class="avatar-tag">// JASURBEK.JOLANBOYEV</div> -->
       </div>
     </div>
   </div>
@@ -447,12 +447,8 @@ footer{padding:2.5rem clamp(1.5rem,4vw,3rem);position:relative;z-index:10;
 <div class="container">
   <div class="about-grid">
     <div class="about-img-stack reveal">
-      <img src="assets/man.jpg" alt="Jasurbek">
-      <div class="about-img-badge">
-        <span class="uz show">// Xaker emas, Himoyachi</span>
-        <span class="ru">// Не хакер, а защитник</span>
-        <span class="en">// Defender, not attacker</span>
-      </div>
+      <img src="assets/man.jpg" alt="">
+     
     </div>
     <div class="about-text">
       <div class="section-eyebrow">
@@ -702,6 +698,38 @@ footer{padding:2.5rem clamp(1.5rem,4vw,3rem);position:relative;z-index:10;
         <div class="cert-year">2025</div>
       </div>
     </div>
+    <div class="cert-card reveal" onclick="openModal('cert4')">
+      <div class="cert-img-wrap">
+        <img src="assets/cau.png" alt="CAU Tech Hack">
+        <div class="cert-zoom">
+          <span class="uz show">+ Kattalashtirish</span>
+          <span class="ru">+ Открыть</span>
+          <span class="en">+ Zoom</span>
+        </div>
+      </div>
+      <div class="cert-info">
+        <div class="cert-name uz show">CAU Tech Hack '26 — CTF</div>
+        <div class="cert-name ru">CAU Tech Hack '26 — CTF</div>
+        <div class="cert-name en">CAU Tech Hack '26 — CTF</div>
+        <div class="cert-year">2026</div>
+      </div>
+    </div>
+    <div class="cert-card reveal reveal-delay-1" onclick="openModal('cert5')">
+      <div class="cert-img-wrap">
+        <img src="assets/ai500.png" alt="AI500 Hackathon">
+        <div class="cert-zoom">
+          <span class="uz show">+ Kattalashtirish</span>
+          <span class="ru">+ Открыть</span>
+          <span class="en">+ Zoom</span>
+        </div>
+      </div>
+      <div class="cert-info">
+        <div class="cert-name uz show">AI500! Hackathon — Stage 1</div>
+        <div class="cert-name ru">AI500! Hackathon — Этап 1</div>
+        <div class="cert-name en">AI500! Hackathon — Stage 1</div>
+        <div class="cert-year">2025</div>
+      </div>
+    </div>
   </div>
 </div>
 </section>
@@ -802,7 +830,18 @@ footer{padding:2.5rem clamp(1.5rem,4vw,3rem);position:relative;z-index:10;
     <img src="assets/president.jpg" alt="Certificate">
   </div>
 </div>
-
+<div class="modal-backdrop" id="modal-cert4" onclick="closeModal(this)">
+  <div class="modal-img-box">
+    <button class="modal-close" onclick="closeModal(document.getElementById('modal-cert4'))">&times;</button>
+    <img src="assets/cau.png" alt="Certificate">
+  </div>
+</div>
+<div class="modal-backdrop" id="modal-cert5" onclick="closeModal(this)">
+  <div class="modal-img-box">
+    <button class="modal-close" onclick="closeModal(document.getElementById('modal-cert5'))">&times;</button>
+    <img src="assets/ai500.png" alt="Certificate">
+  </div>
+</div>
 <script>
 /* ===== LANG SYSTEM ===== */
 let currentLang = localStorage.getItem('lang') || 'uz';
