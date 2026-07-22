@@ -105,6 +105,11 @@ nav a:hover::after{transform:scaleX(1);transform-origin:left}
 .uz,.ru,.en{display:none}
 .uz.show,.ru.show,.en.show{display:block}
 .uz.show-inline,.ru.show-inline,.en.show-inline{display:inline}
+::view-transition-old(root){animation:langOut .28s var(--ease-standard) both}
+::view-transition-new(root){animation:langIn .62s var(--ease-smooth) both}
+@keyframes langOut{to{opacity:.2;transform:translate3d(0,-5px,0)}}
+@keyframes langIn{from{opacity:.15;transform:translate3d(0,9px,0)}to{opacity:1;transform:none}}
+.lang-fallback .uz.show,.lang-fallback .ru.show,.lang-fallback .en.show{animation:langIn .62s var(--ease-smooth) both}
 
 /* ===== MAIN / SECTIONS ===== */
 main{position:relative;z-index:10}
@@ -288,9 +293,10 @@ footer{padding:2.5rem clamp(1.5rem,4vw,3rem);position:relative;z-index:10;
   cursor:pointer;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;box-shadow:var(--shadow-sm)}
 
 /* ===== REVEAL ===== */
-.reveal{opacity:0;transform:translate3d(0,20px,0) scale(.992);transition:opacity .85s var(--ease-smooth),transform .85s var(--ease-smooth);will-change:opacity,transform}
-.reveal.active{opacity:1;transform:translateY(0)}
-.reveal-delay-1{transition-delay:.08s}.reveal-delay-2{transition-delay:.16s}.reveal-delay-3{transition-delay:.24s}
+.reveal{opacity:0;transform:translate3d(0,30px,0) scale(.985);transition:opacity 1s var(--ease-smooth),transform 1s var(--ease-smooth);will-change:opacity,transform}
+.reveal.reveal-above{transform:translate3d(0,-30px,0) scale(.985)}
+.reveal.active{opacity:1;transform:translate3d(0,0,0) scale(1)}
+.reveal-delay-1.active{transition-delay:.1s}.reveal-delay-2.active{transition-delay:.2s}.reveal-delay-3.active{transition-delay:.3s}
 
 /* ===== MOBILE ===== */
 @media(max-width:900px){
@@ -323,8 +329,9 @@ footer{padding:2.5rem clamp(1.5rem,4vw,3rem);position:relative;z-index:10;
 #mobile-menu a:hover{color:var(--green-d)}
 #mobile-menu .lang-btns-mobile{display:flex;gap:.5rem;margin-top:1rem}
 #mobile-menu .lang-btns-mobile button{font-family:var(--font-mono);font-size:.65rem;font-weight:700;
-  padding:.5rem 1rem;background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:10px;cursor:pointer}
-#mobile-menu .lang-btns-mobile button:hover{color:var(--ink);border-color:var(--green-d);background:rgba(180,232,120,.2)}
+  padding:.5rem 1rem;background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:10px;cursor:pointer;
+  transition:color .3s var(--ease-standard),border-color .3s var(--ease-standard),background-color .3s var(--ease-standard),transform .4s var(--ease-smooth)}
+#mobile-menu .lang-btns-mobile button:hover,#mobile-menu .lang-btns-mobile button.active{color:var(--ink);border-color:var(--green-d);background:rgba(180,232,120,.24);transform:translateY(-1px)}
 @media(max-width:520px){
   .container{padding:0 1rem}
   #home{padding-top:6.5rem}
@@ -344,10 +351,11 @@ footer{padding:2.5rem clamp(1.5rem,4vw,3rem);position:relative;z-index:10;
   h1.hero-title .line2{font-size:.42em}
   footer{justify-content:center;text-align:center}
 }
-@media(prefers-reduced-motion:reduce){
+  @media(prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
   .reveal{opacity:1;transform:none}
+  ::view-transition-old(root),::view-transition-new(root){animation:none}
 }
 </style>
 </head>
@@ -411,9 +419,9 @@ footer{padding:2.5rem clamp(1.5rem,4vw,3rem);position:relative;z-index:10;
   <a href="#contact" onclick="toggleMenu()" class="ru">Контакт</a>
   <a href="#contact" onclick="toggleMenu()" class="en">Contact</a>
   <div class="lang-btns-mobile">
-    <button onclick="setLang('uz'); toggleMenu()">UZ</button>
-    <button onclick="setLang('ru'); toggleMenu()">RU</button>
-    <button onclick="setLang('en'); toggleMenu()">EN</button>
+    <button data-lang="uz" onclick="selectMobileLang('uz')">UZ</button>
+    <button data-lang="ru" onclick="selectMobileLang('ru')">RU</button>
+    <button data-lang="en" onclick="selectMobileLang('en')">EN</button>
   </div>
 </div>
 
@@ -900,17 +908,38 @@ footer{padding:2.5rem clamp(1.5rem,4vw,3rem);position:relative;z-index:10;
 <script>
 /* ===== LANG SYSTEM ===== */
 let currentLang = localStorage.getItem('lang') || 'uz';
-function setLang(lang) {
+function applyLang(lang) {
   currentLang = lang;
   localStorage.setItem('lang', lang);
   ['uz','ru','en'].forEach(l => {
     document.querySelectorAll('.'+l).forEach(el => el.classList.remove('show'));
     document.getElementById('btn-'+l)?.classList.remove('active');
+    document.querySelectorAll('[data-lang="'+l+'"]').forEach(el => el.classList.remove('active'));
   });
   document.querySelectorAll('.'+lang).forEach(el => el.classList.add('show'));
   document.getElementById('btn-'+lang)?.classList.add('active');
+  document.querySelectorAll('[data-lang="'+lang+'"]').forEach(el => el.classList.add('active'));
+  document.documentElement.lang = lang;
 }
-setLang(currentLang);
+function setLang(lang, animate = true) {
+  if (lang === currentLang && animate) return Promise.resolve();
+  if (animate && document.startViewTransition) {
+    return document.startViewTransition(() => applyLang(lang)).finished;
+  }
+  if (animate) {
+    document.documentElement.classList.remove('lang-fallback');
+    void document.documentElement.offsetWidth;
+    document.documentElement.classList.add('lang-fallback');
+    window.setTimeout(() => document.documentElement.classList.remove('lang-fallback'), 650);
+  }
+  applyLang(lang);
+  return animate ? new Promise(resolve => window.setTimeout(resolve, 620)) : Promise.resolve();
+}
+async function selectMobileLang(lang) {
+  await setLang(lang);
+  document.getElementById('mobile-menu').classList.remove('open');
+}
+applyLang(currentLang);
 
 /* ===== MOBILE MENU ===== */
 function toggleMenu() {
@@ -929,14 +958,26 @@ document.querySelectorAll('.modal-backdrop').forEach(m => {
 });
 
 /* ===== REVEAL ===== */
+document.querySelectorAll([
+  '.hero-badge',
+  '.hero-title',
+  '.section-eyebrow',
+  '.section-title',
+  '.contact-item',
+  'footer span'
+].join(',')).forEach(el => el.classList.add('reveal'));
+
 const obs = new IntersectionObserver(entries => {
   entries.forEach(e => {
     if(e.isIntersecting) {
       e.target.classList.add('active');
-      obs.unobserve(e.target);
+    } else {
+      const rect = e.target.getBoundingClientRect();
+      e.target.classList.remove('active');
+      e.target.classList.toggle('reveal-above', rect.bottom <= 0);
     }
   });
-}, { threshold: 0.08 });
+}, { threshold: 0.06, rootMargin: '-4% 0px -4% 0px' });
 document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
 
 /* ===== SKILL BARS ===== */
@@ -946,6 +987,9 @@ const skillObs = new IntersectionObserver(entries => {
       const bar = e.target.querySelector('.skill-bar');
       const lvl = e.target.dataset.level || 70;
       if(bar) bar.style.width = lvl + '%';
+    } else {
+      const bar = e.target.querySelector('.skill-bar');
+      if(bar) bar.style.width = '0';
     }
   });
 }, { threshold: 0.3 });
